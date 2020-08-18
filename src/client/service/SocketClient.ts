@@ -2,6 +2,11 @@ import { Service, DataFrame, DataSerializer, Node } from "@openhps/core";
 import * as io from 'socket.io-client';
 import { ClientOptions } from "../nodes/ClientOptions";
 
+/**
+ * Socket client
+ * 
+ * @category Client
+ */
 export class SocketClient extends Service {
     private _client: SocketIOClient.Socket;
     private _options: ClientOptions;

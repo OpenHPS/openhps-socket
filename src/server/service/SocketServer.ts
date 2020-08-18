@@ -4,6 +4,11 @@ import * as http from 'http';
 import * as https from 'https';
 import { ServerOptions } from "../nodes/ServerOptions";
 
+/**
+ * Socket server
+ * 
+ * @category Server
+ */
 export class SocketServer extends Service {
     private _server: io.Server;
     private _namespace: io.Namespace;

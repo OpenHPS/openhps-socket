@@ -15,7 +15,7 @@
     "cover": "nyc mocha && nyc report --reporter=cobertura",
     "lint": "tslint -c tslint.json --project tsconfig.json",
     "clean": "shx rm -rf ./dist && shx rm -rf ./docs",
-    "build": "npm run clean && npm-run-all --parallel build:**",
+    "build": "npm run clean && npm-run-all --parallel build:typescript build:typedoc && npm run build:webpack",
     "build:typescript": "tsc",
     "build:webpack": "webpack",
     "build:typedoc": "typedoc --excludePrivate --hideGenerator --out docs src",
