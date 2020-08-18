@@ -58,10 +58,10 @@ export class SocketClientNode<In extends DataFrame, Out extends DataFrame> exten
     private _onLocalPull(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const pullPromises = new Array();
-            this.outputNodes.forEach(node => {
+            this.inputNodes.forEach(node => {
                 pullPromises.push(node.pull());
             });
-
+            
             Promise.all(pullPromises).then(() => {
                 resolve();
             }).catch(reject);

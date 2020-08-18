@@ -4,9 +4,9 @@ import { ModelBuilder, DataFrame, DataObject, DataSerializer } from '@openhps/co
 import * as http from 'http';
 import * as io from 'socket.io-client';
 import * as express from 'express';
-import { SocketServerSink, SocketServer } from '../../../src';
+import { SocketServerSink, SocketServer, SocketClientSource } from '../../../src';
 
-describe('node', () => {
+describe('node server', () => {
     describe('remote sink', () => {
 
         it('should host a websocket server', (done) => {
@@ -39,6 +39,19 @@ describe('node', () => {
                     }, 100);
                 });
         }).timeout(50000);
+
+        it('should throw an error when building without client service', (done) => {
+            ModelBuilder.create()
+                .from(new SocketClientSource({
+                    uid: "source"
+                }))
+                .to()
+                .build().then(model => {
+                    done(`No error`);
+                }).catch(ex => {
+                    done();
+                });
+        });
 
         it('should host a websocket server alongside express', (done) => {
             const app = express();

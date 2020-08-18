@@ -27,9 +27,7 @@ export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
         return new Promise((resolve, reject) => {
             this._remoteNode.pull().then(() => {
                 resolve();
-            }).catch(ex => {
-                reject(ex);
-            });
+            }).catch(reject);
         });
     }
 
