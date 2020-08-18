@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import 'mocha';
 import { ModelBuilder, Model, DataFrame, DataObject, CallbackSinkNode, CallbackSourceNode } from '@openhps/core';
-import { SocketClient, SocketServer, SocketServerSource, SocketClientSink, SocketServerSink, SocketClientSource } from '../../../src';
+import { SocketClient, SocketServer, SocketServerSource, SocketClientSink, SocketClientSource, SocketServerSink } from '../../../src';
 import * as http from 'http';
 
 describe('node client', () => {
-    describe('remote sink', () => {
+    describe('remote source', () => {
 
         it('should connect to a websocket server', (done) => {
             let clientModel: Model<any, any>;
@@ -19,15 +19,14 @@ describe('node client', () => {
                     path: "/api/v1",
                     srv: server
                 }))
-                .from(new SocketServerSource({
-                    uid: "source"
-                }))
-                .to(new CallbackSinkNode((frame: DataFrame) => {
-                    expect(frame.getObjects()[0].uid).to.equal("abc");
-                    server.close();
+                .from(new CallbackSourceNode(() => {
                     serverModel.emit('destroy');
                     clientModel.emit('destroy');
                     done();
+                    return undefined;
+                }))
+                .to(new SocketServerSink({
+                    uid: "sink"
                 }))
                 .build().then(model => {
                     serverModel = model;
@@ -36,15 +35,15 @@ describe('node client', () => {
                             url: 'http://localhost:1587',
                             path: '/api/v1'
                         }))
-                        .from()
-                        .to(new SocketClientSink({
-                            uid: "source"
+                        .from(new SocketClientSource({
+                            uid: "sink"
                         }))
+                        .to()
                         .build().then(model => {
                             clientModel = model;
-                            const frame = new DataFrame();
-                            frame.addObject(new DataObject("abc"));
-                            Promise.resolve(model.push(frame));
+                            return clientModel.pull();
+                        }).then(() => {
+                            
                         }).catch(ex => {
                             done(ex);
                         });
@@ -53,7 +52,7 @@ describe('node client', () => {
                 });
         }).timeout(50000);
 
-        it('should forward server pulls to the client', (done) => {
+        it('should forward server pushes to the client', (done) => {
             let clientModel: Model<any, any>;
             let serverModel: Model<any, any>;
 
@@ -65,10 +64,10 @@ describe('node client', () => {
                     path: "/api/v1",
                     srv: server
                 }))
-                .from(new SocketServerSource({
-                    uid: "source"
+                .from()
+                .to(new SocketServerSink({
+                    uid: "sink"
                 }))
-                .to()
                 .build().then(model => {
                     serverModel = model;
                     ModelBuilder.create()
@@ -76,43 +75,27 @@ describe('node client', () => {
                             url: 'http://localhost:1587',
                             path: '/api/v1'
                         }))
-                        .from(new CallbackSourceNode(() => {
+                        .from(new SocketClientSource({
+                            uid: "sink"
+                        }))
+                        .to(new CallbackSinkNode(frame => {
                             server.close();
                             serverModel.emit('destroy');
                             clientModel.emit('destroy');
                             done();
-                            return null;
-                        }))
-                        .to(new SocketClientSink({
-                            uid: "source"
                         }))
                         .build().then(model => {
                             clientModel = model;
-                            Promise.resolve(serverModel.pull());
+                            const frame = new DataFrame();
+                            frame.addObject(new DataObject("abc"));
+                            Promise.resolve(serverModel.push(frame));
                         }).catch(ex => {
                             done(ex);
                         });
                 }).catch(ex => {
                     done(ex);
                 });
-        }).timeout(5000);
-
-        it('should should throw an error connecting to a fake websocket server', (done) => {
-            ModelBuilder.create()
-                .addService(new SocketClient({
-                    url: 'abc',
-                    path: '/api/v1'
-                }))
-                .from()
-                .to(new SocketClientSink({
-                    uid: "source"
-                }))
-                .build().then(model => {
-                    done('Model builded without error');
-                }).catch(ex => {
-                    done();
-                })
-        }).timeout(5000);
-
+        }).timeout(50000);
+        
     });
 });
