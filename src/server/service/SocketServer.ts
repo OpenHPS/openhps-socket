@@ -1,18 +1,16 @@
-import { Service, DataSerializer, DataFrame, Node } from "@openhps/core";
+import { Service, DataSerializer, DataFrame, Node } from '@openhps/core';
 import * as io from 'socket.io';
 import * as http from 'http';
 import * as https from 'https';
-import { ServerOptions } from "../nodes/ServerOptions";
+import { ServerOptions } from '../nodes/ServerOptions';
 
 /**
  * Socket server
- * 
- * @category Server
  */
 export class SocketServer extends Service {
     private _server: io.Server;
     private _namespace: io.Namespace;
-    private _clients: io.Socket[] = new Array();
+    private _clients: io.Socket[] = [];
     private _options: ServerOptions;
     private _nodes: Map<string, Node<any, any>> = new Map();
 
@@ -27,34 +25,34 @@ export class SocketServer extends Service {
     }
 
     private _onBuild(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             switch (this._options.srv.constructor) {
                 case http.Server:
                 case https.Server:
                     this._server = io(this._options.srv as http.Server | https.Server, {
-                        transports: ['polling', 'websocket']
+                        transports: ['polling', 'websocket'],
                     });
                     this.logger('debug', {
-                        message: 'Socket server opened!'
+                        message: 'Socket server opened!',
                     });
                     break;
                 default:
                     this._server = this._options.srv as io.Server;
                     break;
             }
-            
+
             this._namespace = this._server.of(this._options.path);
             this._namespace.on('connection', this._onConnect.bind(this));
             this.logger('debug', {
                 message: 'Socket namespace created!',
-                path: this._options.path
+                path: this._options.path,
             });
             resolve();
         });
     }
 
     private _onDestroy(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             if (this._server !== undefined) {
                 this._server.close();
             }
@@ -109,7 +107,7 @@ export class SocketServer extends Service {
     public get clients(): io.Socket[] {
         return this._clients;
     }
-    
+
     public get server(): io.Server {
         return this._server;
     }
@@ -117,5 +115,4 @@ export class SocketServer extends Service {
     public get namespace(): io.Namespace {
         return this._namespace;
     }
-
 }

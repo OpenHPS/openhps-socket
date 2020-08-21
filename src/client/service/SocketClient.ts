@@ -1,11 +1,9 @@
-import { Service, DataFrame, DataSerializer, Node } from "@openhps/core";
+import { Service, DataFrame, DataSerializer, Node } from '@openhps/core';
 import * as io from 'socket.io-client';
-import { ClientOptions } from "../nodes/ClientOptions";
+import { ClientOptions } from '../nodes/ClientOptions';
 
 /**
  * Socket client
- * 
- * @category Client
  */
 export class SocketClient extends Service {
     private _client: SocketIOClient.Socket;
@@ -14,7 +12,7 @@ export class SocketClient extends Service {
 
     constructor(options?: ClientOptions) {
         super();
-        this.name = "SocketClient";
+        this.name = 'SocketClient';
         const defaultOptions = new ClientOptions();
         // tslint:disable-next-line
         this._options = Object.assign(defaultOptions, options);
@@ -29,7 +27,7 @@ export class SocketClient extends Service {
                 autoConnect: false,
                 timeout: this._options.timeout,
                 transports: this._options.transports,
-                rejectUnauthorized: this._options.rejectUnauthorized
+                rejectUnauthorized: this._options.rejectUnauthorized,
             });
 
             const timeout = setTimeout(() => {
@@ -43,7 +41,7 @@ export class SocketClient extends Service {
             this._client.once('connect', () => {
                 this.logger('debug', {
                     message: 'Socket connection made with server!',
-                    url: `${this._options.url}${this._options.path}`
+                    url: `${this._options.url}${this._options.path}`,
                 });
                 clearTimeout(timeout);
                 resolve();
@@ -52,7 +50,7 @@ export class SocketClient extends Service {
                 this.logger('error', {
                     message: 'Socket connection failed with server!',
                     url: `${this._options.url}${this._options.path}`,
-                    error: err
+                    error: err,
                 });
                 clearTimeout(timeout);
                 reject(err);
@@ -61,7 +59,7 @@ export class SocketClient extends Service {
                 this.logger('error', {
                     message: 'Socket connection timeout!',
                     url: `${this._options.url}${this._options.path}`,
-                    error: err
+                    error: err,
                 });
                 clearTimeout(timeout);
                 reject(new Error(`Socket connection timeout!`));
@@ -70,19 +68,19 @@ export class SocketClient extends Service {
             this._client.on('pull', this._onPull.bind(this));
             this.logger('debug', {
                 message: 'Connecting to socket server ...',
-                url: `${this._options.url}${this._options.path}`
+                url: `${this._options.url}${this._options.path}`,
             });
             this._client.open();
         });
     }
 
     private _onDestroy(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             this._client.close();
             resolve();
         });
     }
-    
+
     private _onPush(uid: string, serializedFrame: any): void {
         if (this._nodes.has(uid)) {
             // Parse frame and options
@@ -116,5 +114,4 @@ export class SocketClient extends Service {
     public pull(uid: string): void {
         this._client.emit('pull', uid);
     }
-    
 }

@@ -1,5 +1,5 @@
-import { DataFrame, SourceNode, EdgeBuilder, ModelBuilder, SourceNodeOptions } from "@openhps/core";
-import { SocketClientNode } from "../SocketClientNode";
+import { DataFrame, SourceNode, EdgeBuilder, ModelBuilder, SourceNodeOptions } from '@openhps/core';
+import { SocketClientNode } from '../SocketClientNode';
 
 export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
     private _remoteNode: SocketClientNode<Out, Out>;
@@ -16,19 +16,18 @@ export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
         this._remoteNode.graph = this.graph;
         this._remoteNode.logger = this.logger;
         graphBuilder.addNode(this._remoteNode);
-        graphBuilder.addEdge(new EdgeBuilder<Out>()
-            .withInput(this._remoteNode)
-            .withOutput(this)
-            .build());
+        graphBuilder.addEdge(new EdgeBuilder<Out>().withInput(this._remoteNode).withOutput(this).build());
         return this._remoteNode.emitAsync('build', graphBuilder);
     }
 
     public onPull(): Promise<Out> {
         return new Promise((resolve, reject) => {
-            this._remoteNode.pull().then(() => {
-                resolve();
-            }).catch(reject);
+            this._remoteNode
+                .pull()
+                .then(() => {
+                    resolve();
+                })
+                .catch(reject);
         });
     }
-
 }

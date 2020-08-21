@@ -1,5 +1,5 @@
-import { Node, DataFrame, Model, NodeOptions } from "@openhps/core";
-import { SocketClient } from "../service/SocketClient";
+import { Node, DataFrame, Model, NodeOptions } from '@openhps/core';
+import { SocketClient } from '../service/SocketClient';
 
 export class SocketClientNode<In extends DataFrame, Out extends DataFrame> extends Node<In, Out> {
     private _service: SocketClient;
@@ -16,8 +16,8 @@ export class SocketClientNode<In extends DataFrame, Out extends DataFrame> exten
 
     private _onBuild(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            const model = (this.graph as Model<any, any>);
-            this._service = (this.graph as Model<any, any>).findService<SocketClient>("SocketClient");
+            const model = this.graph as Model<any, any>;
+            this._service = model.findService<SocketClient>('SocketClient');
             if (this._service === undefined || this._service === null) {
                 return reject(new Error(`Socket client service was not added to model!`));
             }
@@ -27,7 +27,7 @@ export class SocketClientNode<In extends DataFrame, Out extends DataFrame> exten
     }
 
     private _onPush(frame: In | In[]): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             // Send push to clients
             this._service.push(this.uid, frame);
             resolve();
@@ -35,7 +35,7 @@ export class SocketClientNode<In extends DataFrame, Out extends DataFrame> exten
     }
 
     private _onPull(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             // Send pull to clients
             this._service.pull(this.uid);
             resolve();
@@ -44,28 +44,31 @@ export class SocketClientNode<In extends DataFrame, Out extends DataFrame> exten
 
     private _onLocalPush(frame: In | In[]): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            const pushPromises = new Array();
-            this.outputNodes.forEach(node => {
+            const pushPromises: Array<Promise<void>> = [];
+            this.outputNodes.forEach((node) => {
                 pushPromises.push(node.push(frame));
             });
 
-            Promise.all(pushPromises).then(() => {
-                resolve();
-            }).catch(reject);
+            Promise.all(pushPromises)
+                .then(() => {
+                    resolve();
+                })
+                .catch(reject);
         });
     }
 
     private _onLocalPull(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            const pullPromises = new Array();
-            this.inputNodes.forEach(node => {
+            const pullPromises: Array<Promise<void>> = [];
+            this.inputNodes.forEach((node) => {
                 pullPromises.push(node.pull());
             });
-            
-            Promise.all(pullPromises).then(() => {
-                resolve();
-            }).catch(reject);
+
+            Promise.all(pullPromises)
+                .then(() => {
+                    resolve();
+                })
+                .catch(reject);
         });
     }
-
 }
