@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 0.1.0-alpha.2 (2020-09-03)
+
 ## [1.0.0-alpha.100](https://git.mvdw-software.com/Maximvdw/openhps-socket-server/compare/v1.0.0-alpha.99...v1.0.0-alpha.100) (2020-07-13)
 
 ## [1.0.0-alpha.99](https://git.mvdw-software.com/Maximvdw/openhps-socket-server/compare/v1.0.0-alpha.98...v1.0.0-alpha.99) (2020-07-13)
