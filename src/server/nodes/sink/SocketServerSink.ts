@@ -15,7 +15,7 @@ export class SocketServerSink<In extends DataFrame> extends SinkNode<In> {
         this._remoteNode.graph = this.graph;
         this._remoteNode.logger = this.logger;
         graphBuilder.addNode(this._remoteNode);
-        graphBuilder.addEdge(new EdgeBuilder<In>().withInput(this).withOutput(this._remoteNode).build());
+        graphBuilder.addEdge(EdgeBuilder.create().from(this).to(this._remoteNode).build());
         return this._remoteNode.emitAsync('build', graphBuilder);
     }
 

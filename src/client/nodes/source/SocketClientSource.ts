@@ -16,7 +16,7 @@ export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
         this._remoteNode.graph = this.graph;
         this._remoteNode.logger = this.logger;
         graphBuilder.addNode(this._remoteNode);
-        graphBuilder.addEdge(new EdgeBuilder<Out>().withInput(this._remoteNode).withOutput(this).build());
+        graphBuilder.addEdge(EdgeBuilder.create().from(this._remoteNode).to(this).build());
         return this._remoteNode.emitAsync('build', graphBuilder);
     }
 
