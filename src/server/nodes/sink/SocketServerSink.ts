@@ -1,4 +1,4 @@
-import { DataFrame, SinkNode, ModelBuilder, SinkNodeOptions, EdgeBuilder } from '@openhps/core';
+import { DataFrame, SinkNode, ModelBuilder, SinkNodeOptions, EdgeBuilder, PushOptions } from '@openhps/core';
 import { SocketServerNode } from '../SocketServerNode';
 
 export class SocketServerSink<In extends DataFrame> extends SinkNode<In> {
@@ -19,7 +19,7 @@ export class SocketServerSink<In extends DataFrame> extends SinkNode<In> {
         return this._remoteNode.emitAsync('build', graphBuilder);
     }
 
-    public onPush(data: In | In[]): Promise<void> {
-        return this._remoteNode.push(data);
+    public onPush(data: In | In[], options?: PushOptions): Promise<void> {
+        return this._remoteNode.push(data, options);
     }
 }

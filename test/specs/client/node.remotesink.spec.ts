@@ -44,7 +44,7 @@ describe('node client', () => {
                             clientModel = model;
                             const frame = new DataFrame();
                             frame.addObject(new DataObject("abc"));
-                            Promise.resolve(model.push(frame));
+                            model.push(frame);
                         }).catch(ex => {
                             done(ex);
                         });
@@ -101,7 +101,9 @@ describe('node client', () => {
             ModelBuilder.create()
                 .addService(new SocketClient({
                     url: 'abc',
-                    path: '/api/v1'
+                    path: '/api/v1',
+                    reconnectionAttempts: 0,
+                    timeout: 1000
                 }))
                 .from()
                 .to(new SocketClientSink({
@@ -112,7 +114,7 @@ describe('node client', () => {
                 }).catch(ex => {
                     done();
                 })
-        }).timeout(5000);
+        }).timeout(5500);
 
     });
 });

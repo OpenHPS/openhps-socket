@@ -5,7 +5,7 @@ export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
     private _remoteNode: SocketClientNode<Out, Out>;
 
     constructor(options?: SourceNodeOptions) {
-        super(null, options);
+        super(options);
         this._remoteNode = new SocketClientNode<Out, Out>(options);
 
         this.once('build', this._onRemoteBuild.bind(this));
@@ -25,7 +25,7 @@ export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
             this._remoteNode
                 .pull()
                 .then(() => {
-                    resolve();
+                    resolve(undefined);
                 })
                 .catch(reject);
         });

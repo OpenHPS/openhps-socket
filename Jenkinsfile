@@ -70,8 +70,8 @@ pipeline {
                 reportFiles: '*.*',
                 reportName: "Documentation"
             ])
-            archiveArtifacts artifacts: 'dist/openhps-socket-client.js', fingerprint: true
-            archiveArtifacts artifacts: 'dist/openhps-socket-client.min.js', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket.js', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket.min.js', fingerprint: true
             deleteDir()
         }
     }

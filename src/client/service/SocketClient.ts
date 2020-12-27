@@ -1,4 +1,4 @@
-import { Service, DataFrame, DataSerializer, Node } from '@openhps/core';
+import { Service, DataFrame, DataSerializer, Node, PushOptions, PullOptions } from '@openhps/core';
 import * as io from 'socket.io-client';
 import { ClientOptions } from '../nodes/ClientOptions';
 
@@ -28,6 +28,7 @@ export class SocketClient extends Service {
                 timeout: this._options.timeout,
                 transports: this._options.transports,
                 rejectUnauthorized: this._options.rejectUnauthorized,
+                reconnectionAttempts: this._options.reconnectionAttempts,
             });
 
             const timeout = setTimeout(() => {
@@ -81,17 +82,17 @@ export class SocketClient extends Service {
         });
     }
 
-    private _onPush(uid: string, serializedFrame: any): void {
+    private _onPush(uid: string, serializedFrame: any, options?: PushOptions): void {
         if (this._nodes.has(uid)) {
             // Parse frame and options
             const frameDeserialized = DataSerializer.deserialize(serializedFrame);
-            this._nodes.get(uid).emit('localpush', frameDeserialized);
+            this._nodes.get(uid).emit('localpush', frameDeserialized, options);
         }
     }
 
-    private _onPull(uid: string): void {
+    private _onPull(uid: string, options?: PullOptions): void {
         if (this._nodes.has(uid)) {
-            this._nodes.get(uid).emit('localpull');
+            this._nodes.get(uid).emit('localpull', options);
         }
     }
 
@@ -107,11 +108,11 @@ export class SocketClient extends Service {
         return this._client.connected;
     }
 
-    public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T): void {
-        this._client.compress(true).emit('push', uid, DataSerializer.serialize(frame));
+    public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): void {
+        this._client.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
     }
 
-    public pull(uid: string): void {
-        this._client.emit('pull', uid);
+    public pull(uid: string, options?: PullOptions): void {
+        this._client.emit('pull', uid, options);
     }
 }

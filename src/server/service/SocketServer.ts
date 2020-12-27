@@ -1,4 +1,4 @@
-import { Service, DataSerializer, DataFrame, Node } from '@openhps/core';
+import { Service, DataSerializer, DataFrame, Node, PushOptions, PullOptions } from '@openhps/core';
 import * as io from 'socket.io';
 import * as http from 'http';
 import * as https from 'https';
@@ -29,7 +29,7 @@ export class SocketServer extends Service {
             switch (this._options.srv.constructor) {
                 case http.Server:
                 case https.Server:
-                    this._server = io(this._options.srv as http.Server | https.Server, {
+                    this._server = new io.Server(this._options.srv as http.Server | https.Server, {
                         transports: ['polling', 'websocket'],
                     });
                     this.logger('debug', {
@@ -91,12 +91,12 @@ export class SocketServer extends Service {
         }
     }
 
-    public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T): void {
-        this._namespace.emit('push', uid, DataSerializer.serialize(frame));
+    public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): void {
+        this._namespace.emit('push', uid, DataSerializer.serialize(frame), options);
     }
 
-    public pull(uid: string): void {
-        this._namespace.emit('pull', uid);
+    public pull(uid: string, options?: PullOptions): void {
+        this._namespace.emit('pull', uid, options);
     }
 
     public registerNode(node: Node<any, any>): boolean {

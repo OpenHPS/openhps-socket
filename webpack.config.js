@@ -1,76 +1,29 @@
-const TerserPlugin = require('terser-webpack-plugin');
-const WebpackAutoInject = require('webpack-auto-inject-version');
+const PROJECT_NAME = "openhps-socket";
+const LIBRARY_NAME = "@openhps/socket";
+
 const path = require('path');
 
-module.exports = [
+module.exports = env => [
 {
-  mode: 'development',
-  entry: './dist/client/index.js',
+  name: PROJECT_NAME,
+  mode: env.prod ? "production" : "development",
+  entry: `./dist/cjs/client/index.js`,
   devtool: 'source-map',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'openhps-socket-client.js',
-    library: '@openhps/socket',
+    filename: `web/${PROJECT_NAME}${env.prod ? ".min" : ""}.${env.module ? 'mjs' : 'js'}`,
+    library: LIBRARY_NAME,
     libraryTarget: 'umd',
     umdNamedDefine: true,
     globalObject: `(typeof self !== 'undefined' ? self : this)`,
   },
-  plugins: [
-    new WebpackAutoInject({
-      SHORT: '@openhps/socket',
-      components: {
-        AutoIncreaseVersion: false,
-      },
-      componentsOptions: {
-        InjectAsComment: {
-          tag: 'Version: {version} - {date}',
-          dateFormat: 'isoDate',
-        },
-      },
-    }),
-  ],
-  externals: ["@openhps/core"],
-},{
-  mode: 'production',
-  entry: './dist/client/index.js',
-  devtool: 'source-map',
   optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          keep_classnames: true,
-          keep_fnames: true
-        }
-      })
-    ]
+    minimize: env.prod,
   },
-  plugins: [
-    new WebpackAutoInject({
-      SHORT: '@openhps/socket',
-      components: {
-        AutoIncreaseVersion: false,
-      },
-      componentsOptions: {
-        InjectAsComment: {
-          tag: 'Version: {version} - {date}',
-          dateFormat: 'isoDate',
-        },
-      },
-    }),
-  ],
   performance: {
     hints: false,
     maxEntrypointSize: 512000,
     maxAssetSize: 512000
   }, 
   externals: ["@openhps/core"],
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'openhps-socket-client.min.js',
-    library: '@openhps/socket',
-    libraryTarget: 'umd',
-    umdNamedDefine: true,
-    globalObject: `(typeof self !== 'undefined' ? self : this)`,
-  }
 }];

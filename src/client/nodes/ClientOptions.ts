@@ -4,4 +4,5 @@ export class ClientOptions {
     public timeout?: number = 5000;
     public transports?: string[] = ['websocket'];
     public rejectUnauthorized?: boolean = false;
+    public reconnectionAttempts?: number = 5;
 }

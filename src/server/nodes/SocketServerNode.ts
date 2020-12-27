@@ -1,4 +1,4 @@
-import { DataFrame, Node, Model, NodeOptions } from '@openhps/core';
+import { DataFrame, Node, Model, NodeOptions, PushOptions, PullOptions } from '@openhps/core';
 import { SocketServer } from '../service';
 
 export class SocketServerNode<In extends DataFrame, Out extends DataFrame> extends Node<In, Out> {
@@ -25,45 +25,32 @@ export class SocketServerNode<In extends DataFrame, Out extends DataFrame> exten
         });
     }
 
-    private _onPush(frame: In | In[]): Promise<void> {
+    private _onPush(frame: In | In[], options?: PushOptions): Promise<void> {
         return new Promise<void>((resolve) => {
             // Send push to clients
-            this._service.push(this.uid, frame);
+            this._service.push(this.uid, frame, options);
             resolve();
         });
     }
 
-    private _onPull(): Promise<void> {
+    private _onPull(options?: PullOptions): Promise<void> {
         return new Promise<void>((resolve) => {
             // Send pull to clients
-            this._service.pull(this.uid);
+            this._service.pull(this.uid, options);
             resolve();
         });
     }
 
-    private _onLocalPush(frame: In | In[]): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const pushPromises: Array<Promise<void>> = [];
-            this.outputNodes.forEach((node) => {
-                pushPromises.push(node.push(frame));
-            });
-
-            Promise.all(pushPromises)
-                .then(() => {
-                    resolve();
-                })
-                .catch(reject);
+    private _onLocalPush(frame: In | In[], options?: PushOptions): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.outlets.forEach((outlet) => outlet.push(frame as any, options));
+            resolve();
         });
     }
 
-    private _onLocalPull(): Promise<void> {
+    private _onLocalPull(options?: PullOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            const pullPromises: Array<Promise<void>> = [];
-            this.inputNodes.forEach((node) => {
-                pullPromises.push(node.pull());
-            });
-
-            Promise.all(pullPromises)
+            Promise.all(this.inlets.map((inlet) => inlet.pull()))
                 .then(() => {
                     resolve();
                 })
