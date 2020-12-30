@@ -6,7 +6,8 @@ pipeline {
                 echo 'Building ...'
                 sh 'npm install'
                 sh 'npm run clean'
-                sh 'npm run build:typescript'
+                sh 'npm run build:cjs'
+                sh 'npm run build:esm'
                 sh 'npm run build:webpack'
             }
         }
@@ -66,12 +67,14 @@ pipeline {
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
-                reportDir: 'docs',
+                reportDir: 'docs/out',
                 reportFiles: '*.*',
                 reportName: "Documentation"
             ])
             archiveArtifacts artifacts: 'dist/web/openhps-socket.js', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket.js.map', fingerprint: true
             archiveArtifacts artifacts: 'dist/web/openhps-socket.min.js', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket.min.js.map', fingerprint: true
             deleteDir()
         }
     }

@@ -1,6 +1,9 @@
 import { DataFrame, SourceNode, EdgeBuilder, ModelBuilder, SourceNodeOptions } from '@openhps/core';
 import { SocketClientNode } from '../SocketClientNode';
 
+/**
+ * @category Client
+ */
 export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
     private _remoteNode: SocketClientNode<Out, Out>;
 

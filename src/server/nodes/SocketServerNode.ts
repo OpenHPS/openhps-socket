@@ -1,6 +1,9 @@
 import { DataFrame, Node, Model, NodeOptions, PushOptions, PullOptions } from '@openhps/core';
 import { SocketServer } from '../service';
 
+/**
+ * @category Server
+ */
 export class SocketServerNode<In extends DataFrame, Out extends DataFrame> extends Node<In, Out> {
     private _service: SocketServer;
 

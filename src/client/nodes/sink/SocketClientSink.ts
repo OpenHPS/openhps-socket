@@ -1,6 +1,9 @@
 import { DataFrame, SinkNode, ModelBuilder, SinkNodeOptions, EdgeBuilder, PushOptions } from '@openhps/core';
 import { SocketClientNode } from '../SocketClientNode';
 
+/**
+ * @category Client
+ */
 export class SocketClientSink<In extends DataFrame> extends SinkNode<In> {
     private _remoteNode: SocketClientNode<In, In>;
 

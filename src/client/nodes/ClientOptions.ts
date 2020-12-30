@@ -1,3 +1,6 @@
+/**
+ * @category Client
+ */
 export class ClientOptions {
     public url: string;
     public path: string;
