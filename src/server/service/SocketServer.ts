@@ -101,6 +101,9 @@ export class SocketServer extends Service {
 
     public registerNode(node: Node<any, any>): boolean {
         this._nodes.set(node.uid, node);
+        this.logger('debug', {
+            message: `Registered remote server node ${node.uid}`,
+        });
         return true;
     }
 

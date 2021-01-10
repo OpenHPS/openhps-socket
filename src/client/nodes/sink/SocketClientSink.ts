@@ -1,4 +1,4 @@
-import { DataFrame, SinkNode, ModelBuilder, SinkNodeOptions, EdgeBuilder, PushOptions } from '@openhps/core';
+import { DataFrame, SinkNode, ModelBuilder, SinkNodeOptions, PushOptions, Edge } from '@openhps/core';
 import { SocketClientNode } from '../SocketClientNode';
 
 /**
@@ -19,8 +19,8 @@ export class SocketClientSink<In extends DataFrame> extends SinkNode<In> {
         this._remoteNode.graph = this.graph;
         this._remoteNode.logger = this.logger;
         graphBuilder.addNode(this._remoteNode);
-        graphBuilder.addEdge(EdgeBuilder.create().from(this._remoteNode).to(this).build());
-        graphBuilder.addEdge(EdgeBuilder.create().from(this).to(this._remoteNode).build());
+        graphBuilder.addEdge(new Edge(this._remoteNode, this));
+        graphBuilder.addEdge(new Edge(this, this._remoteNode));
         return this._remoteNode.emitAsync('build', graphBuilder);
     }
 

@@ -1,4 +1,4 @@
-import { DataFrame, SourceNode, EdgeBuilder, ModelBuilder, SourceNodeOptions } from '@openhps/core';
+import { DataFrame, SourceNode, ModelBuilder, SourceNodeOptions, Edge } from '@openhps/core';
 import { SocketClientNode } from '../SocketClientNode';
 
 /**
@@ -19,7 +19,7 @@ export class SocketClientSource<Out extends DataFrame> extends SourceNode<Out> {
         this._remoteNode.graph = this.graph;
         this._remoteNode.logger = this.logger;
         graphBuilder.addNode(this._remoteNode);
-        graphBuilder.addEdge(EdgeBuilder.create().from(this._remoteNode).to(this).build());
+        graphBuilder.addEdge(new Edge(this._remoteNode, this));
         return this._remoteNode.emitAsync('build', graphBuilder);
     }
 
