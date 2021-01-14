@@ -65,8 +65,7 @@ ModelBuilder.create()
 Once the service is added, you can add ```SocketClientNode``` implementations to act as a sink or source.
 
 #### Socket Client
-The socket client is used in positioning models to push and pull data from remote locations. Pushed data frames are serialized and pushed
-to a socket server.
+The socket client is used in positioning models to push and pull data from remote locations. Pushed data frames are serialized and pushed to a socket server.
 
 ## Contributors
 The framework is open source and is mainly developed by PhD Student Maxim Van de Wynckel as part of his research towards *Hybrid Positioning and Implicit Human-Computer Interaction* under the supervision of Prof. Dr. Beat Signer.

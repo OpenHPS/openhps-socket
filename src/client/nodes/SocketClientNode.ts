@@ -1,4 +1,13 @@
-import { Node, DataFrame, Model, NodeOptions, PushOptions, PullOptions } from '@openhps/core';
+import {
+    Node,
+    DataFrame,
+    Model,
+    NodeOptions,
+    PushOptions,
+    PullOptions,
+    PushError,
+    PushCompletedEvent,
+} from '@openhps/core';
 import { SocketClient } from '../service/SocketClient';
 
 /**
@@ -10,11 +19,15 @@ export class SocketClientNode<In extends DataFrame, Out extends DataFrame> exten
     constructor(options?: NodeOptions) {
         super(options);
 
-        this.once('build', this._onBuild.bind(this));
         this.on('push', this._onPush.bind(this));
         this.on('pull', this._onPull.bind(this));
+        this.on('error', this._onDownstreamError.bind(this));
+        this.on('completed', this._onDownstreamCompleted.bind(this));
         this.on('localpush', this._onLocalPush.bind(this));
         this.on('localpull', this._onLocalPull.bind(this));
+        this.on('localerror', this._onLocalError.bind(this));
+        this.on('localcompleted', this._onLocalCompleted.bind(this));
+        this.once('build', this._onBuild.bind(this));
     }
 
     private _onBuild(): Promise<void> {
@@ -60,5 +73,23 @@ export class SocketClientNode<In extends DataFrame, Out extends DataFrame> exten
                 })
                 .catch(reject);
         });
+    }
+
+    private _onLocalError(error: PushError): void {
+        this.inlets.forEach((inlet) => inlet.emit('error', error));
+    }
+
+    private _onLocalCompleted(event: PushCompletedEvent): void {
+        this.inlets.forEach((inlet) => inlet.emit('completed', event));
+    }
+
+    private _onDownstreamCompleted(event: PushCompletedEvent): void {
+        // Send completed event to client
+        this._service.sendCompleted(this.uid, event);
+    }
+
+    private _onDownstreamError(error: PushError): void {
+        // Send error to clients
+        this._service.sendError(this.uid, error);
     }
 }

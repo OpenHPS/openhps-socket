@@ -1,4 +1,13 @@
-import { Service, DataSerializer, DataFrame, Node, PushOptions, PullOptions } from '@openhps/core';
+import {
+    Service,
+    DataSerializer,
+    DataFrame,
+    Node,
+    PushOptions,
+    PullOptions,
+    PushError,
+    PushCompletedEvent,
+} from '@openhps/core';
 import * as io from 'socket.io';
 import * as http from 'http';
 import * as https from 'https';
@@ -65,8 +74,12 @@ export class SocketServer extends Service {
         this.logger('debug', {
             message: 'New client socket connection opened!',
         });
+        // Message events
         socket.on('push', this._onPush.bind(this));
         socket.on('pull', this._onPull.bind(this));
+        socket.on('error', this._onError.bind(this));
+        socket.on('completed', this._onCompleted.bind(this));
+        // Disconnect event
         socket.once('disconnect', this._onDisconnect.bind(this));
     }
 
@@ -77,28 +90,82 @@ export class SocketServer extends Service {
         });
     }
 
-    private _onPush(uid: string, serializedFrame: any): void {
+    private _onPush(uid: string, serializedFrame: any, options?: PushOptions): void {
+        options = options || {};
         if (this._nodes.has(uid)) {
             // Parse frame and options
             const frameDeserialized = DataSerializer.deserialize(serializedFrame);
-            this._nodes.get(uid).emit('localpush', frameDeserialized);
+            this._nodes.get(uid).emit('localpush', frameDeserialized, options);
         }
     }
 
-    private _onPull(uid: string): void {
+    private _onPull(uid: string, options?: PullOptions): void {
+        options = options || {};
         if (this._nodes.has(uid)) {
-            this._nodes.get(uid).emit('localpull');
+            this._nodes.get(uid).emit('localpull', options);
         }
     }
 
-    public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): void {
-        this._namespace.emit('push', uid, DataSerializer.serialize(frame), options);
+    private _onError(uid: string, error: PushError): void {
+        if (this._nodes.has(uid)) {
+            this._nodes.get(uid).emit('localerror', error);
+        }
     }
 
+    private _onCompleted(uid: string, event: PushCompletedEvent): void {
+        if (this._nodes.has(uid)) {
+            this._nodes.get(uid).emit('localcompleted', event);
+        }
+    }
+
+    /**
+     * Send a push to a specific remote node
+     *
+     * @param {string} uid Remote Node UID
+     * @param {DataFrame} frame Data frame to push
+     * @param {PushOptions} [options] Push options
+     */
+    public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): void {
+        this._namespace.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
+    }
+
+    /**
+     * Send a pull request to a specific remote node
+     *
+     * @param {string} uid Remote Node UID
+     * @param {PullOptions} [options] Pull options
+     */
     public pull(uid: string, options?: PullOptions): void {
         this._namespace.emit('pull', uid, options);
     }
 
+    /**
+     * Send an error to a remote node
+     *
+     * @param {string} uid Remote Node UID
+     * @param {PushError} error Push error
+     */
+    public sendError(uid: string, error: PushError): void {
+        this._namespace.emit('error', uid, error);
+    }
+
+    /**
+     * Send a completed event to a remote node
+     *
+     * @param {string} uid Remote Node UID
+     * @param {PushCompletedEvent} error Push completed event
+     * @param event
+     */
+    public sendCompleted(uid: string, event: PushCompletedEvent): void {
+        this._namespace.emit('completed', uid, event);
+    }
+
+    /**
+     * Register a node as a remotely available node
+     *
+     * @param {Node<any, any>} node Node to register
+     * @returns {boolean} Registration success
+     */
     public registerNode(node: Node<any, any>): boolean {
         this._nodes.set(node.uid, node);
         this.logger('debug', {

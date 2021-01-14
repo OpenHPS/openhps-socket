@@ -1,4 +1,13 @@
-import { DataFrame, Node, Model, NodeOptions, PushOptions, PullOptions } from '@openhps/core';
+import {
+    DataFrame,
+    Node,
+    Model,
+    NodeOptions,
+    PushOptions,
+    PullOptions,
+    PushError,
+    PushCompletedEvent,
+} from '@openhps/core';
 import { SocketServer } from '../service';
 
 /**
@@ -12,8 +21,12 @@ export class SocketServerNode<In extends DataFrame, Out extends DataFrame> exten
 
         this.on('push', this._onPush.bind(this));
         this.on('pull', this._onPull.bind(this));
+        this.on('error', this._onDownstreamError.bind(this));
+        this.on('completed', this._onDownstreamCompleted.bind(this));
         this.on('localpush', this._onLocalPush.bind(this));
         this.on('localpull', this._onLocalPull.bind(this));
+        this.on('localerror', this._onLocalError.bind(this));
+        this.on('localcompleted', this._onLocalCompleted.bind(this));
         this.once('build', this._onBuild.bind(this));
     }
 
@@ -53,11 +66,29 @@ export class SocketServerNode<In extends DataFrame, Out extends DataFrame> exten
 
     private _onLocalPull(options?: PullOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            Promise.all(this.inlets.map((inlet) => inlet.pull()))
+            Promise.all(this.inlets.map((inlet) => inlet.pull(options)))
                 .then(() => {
                     resolve();
                 })
                 .catch(reject);
         });
+    }
+
+    private _onLocalError(error: PushError): void {
+        this.inlets.forEach((inlet) => inlet.emit('error', error));
+    }
+
+    private _onLocalCompleted(event: PushCompletedEvent): void {
+        this.inlets.forEach((inlet) => inlet.emit('completed', event));
+    }
+
+    private _onDownstreamCompleted(event: PushCompletedEvent): void {
+        // Send completed event to client
+        this._service.sendCompleted(this.uid, event);
+    }
+
+    private _onDownstreamError(error: PushError): void {
+        // Send error to clients
+        this._service.sendError(this.uid, error);
     }
 }

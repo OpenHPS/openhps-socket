@@ -24,8 +24,8 @@
     "src/**/*"
   ],
   "scripts": {
-    "test": "mocha",
-    "test:jenkins": "jenkins-mocha --cobertura",
+    "test": "mocha --config test/.mocharc.json",
+    "test:jenkins": "jenkins-mocha --cobertura --config test/.mocharc.json",
     "cover": "nyc mocha && nyc report --reporter=cobertura",
     "lint": "eslint src/**",
     "clean": "shx rm -rf ./dist && shx rm -rf ./docs/out",
@@ -50,15 +50,15 @@
     "zlib": ">=1.0.5"
   },
   "peerDependencies": {
-    "@openhps/core": ">=0.2.0-alpha.19"
+    "@openhps/core": ">=0.2.0-alpha.21"
   },
   "devDependencies": {
-    "@openhps/core": ">=0.2.0-alpha.19",
+    "@openhps/core": ">=0.2.0-alpha.21",
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
     "@types/chai": "^4.2.14",
     "@types/express": "^4.17.9",
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^8.2.0",
     "@types/node": "^13.13.32",
     "@types/socket.io": ">=2.1.8",
     "@types/socket.io-client": "^1.4.34",
@@ -73,7 +73,7 @@
     "express": "^4.17.1",
     "husky": "^4.3.0",
     "jenkins-mocha": "^8.0.0",
-    "mocha": "^6.2.3",
+    "mocha": "^8.2.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^14.1.1",
     "prettier": "^2.2.0",

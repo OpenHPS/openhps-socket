@@ -1,4 +1,13 @@
-import { Service, DataFrame, DataSerializer, Node, PushOptions, PullOptions } from '@openhps/core';
+import {
+    Service,
+    DataFrame,
+    DataSerializer,
+    Node,
+    PushOptions,
+    PullOptions,
+    PushError,
+    PushCompletedEvent,
+} from '@openhps/core';
 import * as io from 'socket.io-client';
 import { ClientOptions } from '../nodes/ClientOptions';
 
@@ -65,8 +74,12 @@ export class SocketClient extends Service {
                 clearTimeout(timeout);
                 reject(new Error(`Socket connection timeout!`));
             });
+            // Client message events
             this._client.on('push', this._onPush.bind(this));
             this._client.on('pull', this._onPull.bind(this));
+            this._client.on('error', this._onError.bind(this));
+            this._client.on('completed', this._onCompleted.bind(this));
+            // Open connection
             this.logger('debug', {
                 message: 'Connecting to socket server ...',
                 url: `${this._options.url}${this._options.path}`,
@@ -96,6 +109,24 @@ export class SocketClient extends Service {
         }
     }
 
+    private _onError(uid: string, error: PushError): void {
+        if (this._nodes.has(uid)) {
+            this._nodes.get(uid).emit('localerror', error);
+        }
+    }
+
+    private _onCompleted(uid: string, event: PushCompletedEvent): void {
+        if (this._nodes.has(uid)) {
+            this._nodes.get(uid).emit('localcompleted', event);
+        }
+    }
+
+    /**
+     * Register a remote client node
+     *
+     * @param {Node<any, any>} node Node to register
+     * @returns {boolean} Registration success
+     */
     public registerNode(node: Node<any, any>): boolean {
         this._nodes.set(node.uid, node);
         this.logger('debug', {
@@ -109,6 +140,27 @@ export class SocketClient extends Service {
             return false;
         }
         return this._client.connected;
+    }
+
+    /**
+     * Send an error to a remote node
+     *
+     * @param {string} uid Remote Node UID
+     * @param {PushError} error Push error
+     */
+    public sendError(uid: string, error: PushError): void {
+        this._client.emit('error', uid, error);
+    }
+
+    /**
+     * Send a completed event to a remote node
+     *
+     * @param {string} uid Remote Node UID
+     * @param {PushCompletedEvent} error Push completed event
+     * @param event
+     */
+    public sendCompleted(uid: string, event: PushCompletedEvent): void {
+        this._client.emit('completed', uid, event);
     }
 
     public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): void {

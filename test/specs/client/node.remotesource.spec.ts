@@ -96,6 +96,104 @@ describe('node client', () => {
                     done(ex);
                 });
         }).timeout(50000);
+
+        it('should forward client errors to the server', (done) => {
+            let clientModel: Model<any, any>;
+            let serverModel: Model<any, any>;
+
+            const server = http.createServer();
+            server.listen(1587);
+            
+            ModelBuilder.create()
+                .addService(new SocketServer({
+                    path: "/api/v1",
+                    srv: server
+                }))
+                .from()
+                .to(new SocketServerSink({
+                    uid: "sink"
+                }))
+                .build().then(model => {
+                    serverModel = model;
+                    ModelBuilder.create()
+                        .addService(new SocketClient({
+                            url: 'http://localhost:1587',
+                            path: '/api/v1'
+                        }))
+                        .from(new SocketClientSource({
+                            uid: "sink"
+                        }))
+                        .to(new CallbackSinkNode(frame => {
+                            throw new Error(`Client Error`);
+                        }))
+                        .build().then(model => {
+                            clientModel = model;
+                            const frame = new DataFrame();
+                            frame.addObject(new DataObject("abc"));
+                            serverModel.push(frame);
+                            serverModel.once('error', err => {
+                                server.close();
+                                serverModel.emit('destroy');
+                                clientModel.emit('destroy');
+                                done();
+                            });
+                        }).catch(ex => {
+                            done(ex);
+                        });
+                }).catch(ex => {
+                    done(ex);
+                });
+        }).timeout(50000);
+
+        it('should forward client completed events to the server', (done) => {
+            let clientModel: Model<any, any>;
+            let serverModel: Model<any, any>;
+
+            const server = http.createServer();
+            server.listen(1587);
+            
+            ModelBuilder.create()
+                .addService(new SocketServer({
+                    path: "/api/v1",
+                    srv: server
+                }))
+                .from()
+                .to(new SocketServerSink({
+                    uid: "sink"
+                }))
+                .build().then(model => {
+                    serverModel = model;
+                    ModelBuilder.create()
+                        .addService(new SocketClient({
+                            url: 'http://localhost:1587',
+                            path: '/api/v1'
+                        }))
+                        .from(new SocketClientSource({
+                            uid: "sink"
+                        }))
+                        .to(new CallbackSinkNode())
+                        .build().then(model => {
+                            clientModel = model;
+                            const frame = new DataFrame();
+                            frame.addObject(new DataObject("abc"));
+                            serverModel.push(frame);
+                            serverModel.once('completed', event => {
+                                // Completed locally
+                                serverModel.once('completed', event => {
+                                    // Completed on remote server
+                                    server.close();
+                                    serverModel.emit('destroy');
+                                    clientModel.emit('destroy');
+                                    done();
+                                });
+                            });
+                        }).catch(ex => {
+                            done(ex);
+                        });
+                }).catch(ex => {
+                    done(ex);
+                });
+        }).timeout(50000);
         
     });
 });
