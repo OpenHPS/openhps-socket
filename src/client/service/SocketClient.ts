@@ -22,36 +22,55 @@ export class SocketClient extends Service {
     constructor(options?: ClientOptions) {
         super();
         this.name = 'SocketClient';
-        const defaultOptions = new ClientOptions();
-        // tslint:disable-next-line
-        this._options = Object.assign(defaultOptions, options);
+        this._options = options;
 
         this.once('build', this._onBuild.bind(this));
         this.once('destroy', this._onDestroy.bind(this));
     }
 
     private _onBuild(): Promise<void> {
+        if (!this._options) {
+            return Promise.resolve();
+        }
+        return this.connect(this._options);
+    }
+
+    /**
+     * Connect to the socket server
+     *
+     * @param {ClientOptions} options Client options
+     * @returns {Promise<void>} Connection promise
+     */
+    public connect(options: ClientOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            this._client = io(`${this._options.url}${this._options.path}`, {
+            if (this._client && this._client.connected) {
+                // Disconnect
+                this._client.disconnect();
+            }
+            const defaultOptions = new ClientOptions();
+            // tslint:disable-next-line
+            options = Object.assign(defaultOptions, options);
+
+            this._client = io(`${options.url}${options.path}`, {
                 autoConnect: false,
-                timeout: this._options.timeout,
-                transports: this._options.transports,
-                rejectUnauthorized: this._options.rejectUnauthorized,
-                reconnectionAttempts: this._options.reconnectionAttempts,
+                timeout: options.timeout,
+                transports: options.transports,
+                rejectUnauthorized: options.rejectUnauthorized,
+                reconnectionAttempts: options.reconnectionAttempts,
             });
 
             const timeout = setTimeout(() => {
                 this.logger('error', {
                     message: 'Unexpected timeout occured while connecting!',
-                    url: `${this._options.url}${this._options.path}`,
+                    url: `${options.url}${options.path}`,
                 });
                 reject(new Error('Unexpected timeout occurred while connecting!'));
-            }, this._options.timeout * 2);
+            }, options.timeout * 2);
 
             this._client.once('connect', () => {
                 this.logger('debug', {
                     message: 'Socket connection made with server!',
-                    url: `${this._options.url}${this._options.path}`,
+                    url: `${options.url}${options.path}`,
                 });
                 clearTimeout(timeout);
                 resolve();
@@ -59,7 +78,7 @@ export class SocketClient extends Service {
             this._client.once('connect_error', (err: any) => {
                 this.logger('error', {
                     message: 'Socket connection failed with server!',
-                    url: `${this._options.url}${this._options.path}`,
+                    url: `${options.url}${options.path}`,
                     error: err,
                 });
                 clearTimeout(timeout);
@@ -68,7 +87,7 @@ export class SocketClient extends Service {
             this._client.once('connect_timeout', (err: any) => {
                 this.logger('error', {
                     message: 'Socket connection timeout!',
-                    url: `${this._options.url}${this._options.path}`,
+                    url: `${options.url}${options.path}`,
                     error: err,
                 });
                 clearTimeout(timeout);
@@ -82,7 +101,7 @@ export class SocketClient extends Service {
             // Open connection
             this.logger('debug', {
                 message: 'Connecting to socket server ...',
-                url: `${this._options.url}${this._options.path}`,
+                url: `${options.url}${options.path}`,
             });
             this._client.open();
         });
@@ -149,7 +168,7 @@ export class SocketClient extends Service {
      * @param {PushError} error Push error
      */
     public sendError(uid: string, error: PushError): void {
-        this._client.emit('error', uid, error);
+        if (this._client) this._client.emit('error', uid, error);
     }
 
     /**
@@ -160,14 +179,14 @@ export class SocketClient extends Service {
      * @param event
      */
     public sendCompleted(uid: string, event: PushCompletedEvent): void {
-        this._client.emit('completed', uid, event);
+        if (this._client) this._client.emit('completed', uid, event);
     }
 
     public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): void {
-        this._client.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
+        if (this._client) this._client.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
     }
 
     public pull(uid: string, options?: PullOptions): void {
-        this._client.emit('pull', uid, options);
+        if (this._client) this._client.emit('pull', uid, options);
     }
 }
