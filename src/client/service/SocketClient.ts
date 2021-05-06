@@ -57,6 +57,7 @@ export class SocketClient extends Service {
                 transports: options.transports,
                 rejectUnauthorized: options.rejectUnauthorized,
                 reconnectionAttempts: options.reconnectionAttempts,
+                auth: options.auth,
             });
 
             const timeout = setTimeout(() => {

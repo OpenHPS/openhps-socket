@@ -28,6 +28,7 @@ export class SocketServer extends Service {
         const defaultOptions = new ServerOptions();
         // tslint:disable-next-line
         this._options = Object.assign(defaultOptions, options);
+        this._options.middleware = this._options.middleware || [];
 
         this.once('build', this._onBuild.bind(this));
         this.once('destroy', this._onDestroy.bind(this));
@@ -52,6 +53,9 @@ export class SocketServer extends Service {
 
             this._namespace = this._server.of(this._options.path);
             this._namespace.on('connection', this._onConnect.bind(this));
+            this._options.middleware.forEach((middleware) => {
+                this._namespace.use(middleware);
+            });
             this.logger('debug', {
                 message: 'Socket namespace created!',
                 path: this._options.path,
@@ -74,6 +78,7 @@ export class SocketServer extends Service {
         this.logger('debug', {
             message: 'New client socket connection opened!',
         });
+        this.emit('connection', socket);
         // Message events
         socket.on('push', this._onPush.bind(this));
         socket.on('pull', this._onPull.bind(this));
@@ -84,6 +89,7 @@ export class SocketServer extends Service {
     }
 
     private _onDisconnect(socket: io.Socket): void {
+        this.emit('disconnect', socket);
         this._clients.splice(this._clients.indexOf(socket), 1);
         this.logger('debug', {
             message: 'Client socket connection closed!',
@@ -153,8 +159,7 @@ export class SocketServer extends Service {
      * Send a completed event to a remote node
      *
      * @param {string} uid Remote Node UID
-     * @param {PushCompletedEvent} error Push completed event
-     * @param event
+     * @param {PushCompletedEvent} event Push completed event
      */
     public sendCompleted(uid: string, event: PushCompletedEvent): void {
         this._namespace.emit('completed', uid, event);

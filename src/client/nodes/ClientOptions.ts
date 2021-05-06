@@ -8,4 +8,5 @@ export class ClientOptions {
     public transports?: string[] = ['websocket'];
     public rejectUnauthorized?: boolean = false;
     public reconnectionAttempts?: number = 5;
+    public auth?: any;
 }
