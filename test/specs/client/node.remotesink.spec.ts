@@ -82,13 +82,14 @@ describe('node client', () => {
                         }))
                         .build().then((model: Model) => {
                             clientModel = model;
-                            const frame = new DataFrame();
-                            frame.addObject(new DataObject("abc"));
-                            model.push(frame);
-                            (model.findService("SocketClient") as SocketClient).connect({
+                            return (model.findService("SocketClient") as SocketClient).connect({
                                 url: 'http://localhost:1587',
                                 path: '/api/v1'
                             });
+                        }).then(() => {
+                            const frame = new DataFrame();
+                            frame.addObject(new DataObject("abc"));
+                            model.push(frame);
                         }).catch(ex => {
                             done(ex);
                         });

@@ -1,23 +1,13 @@
-import {
-    Service,
-    DataFrame,
-    DataSerializer,
-    Node,
-    PushOptions,
-    PullOptions,
-    PushError,
-    PushCompletedEvent,
-} from '@openhps/core';
+import { DataFrame, DataSerializer, PushOptions, PullOptions, RemoteNodeService } from '@openhps/core';
 import * as io from 'socket.io-client';
 import { ClientOptions } from '../nodes/ClientOptions';
 
 /**
  * Socket client
  */
-export class SocketClient extends Service {
+export class SocketClient extends RemoteNodeService {
     private _client: SocketIOClient.Socket;
     private _options: ClientOptions;
-    private _nodes: Map<string, Node<any, any>> = new Map();
 
     constructor(options?: ClientOptions) {
         super();
@@ -95,10 +85,9 @@ export class SocketClient extends Service {
                 reject(new Error(`Socket connection timeout!`));
             });
             // Client message events
-            this._client.on('push', this._onPush.bind(this));
-            this._client.on('pull', this._onPull.bind(this));
-            this._client.on('error', this._onError.bind(this));
-            this._client.on('completed', this._onCompleted.bind(this));
+            this._client.on('push', this.localPush.bind(this));
+            this._client.on('pull', this.localPull.bind(this));
+            this._client.on('event', this.localEvent.bind(this));
             // Open connection
             this.logger('debug', {
                 message: 'Connecting to socket server ...',
@@ -115,46 +104,6 @@ export class SocketClient extends Service {
         });
     }
 
-    private _onPush(uid: string, serializedFrame: any, options?: PushOptions): void {
-        if (this._nodes.has(uid)) {
-            // Parse frame and options
-            const frameDeserialized = DataSerializer.deserialize(serializedFrame);
-            this._nodes.get(uid).emit('localpush', frameDeserialized, options);
-        }
-    }
-
-    private _onPull(uid: string, options?: PullOptions): void {
-        if (this._nodes.has(uid)) {
-            this._nodes.get(uid).emit('localpull', options);
-        }
-    }
-
-    private _onError(uid: string, error: PushError): void {
-        if (this._nodes.has(uid)) {
-            this._nodes.get(uid).emit('localerror', error);
-        }
-    }
-
-    private _onCompleted(uid: string, event: PushCompletedEvent): void {
-        if (this._nodes.has(uid)) {
-            this._nodes.get(uid).emit('localcompleted', event);
-        }
-    }
-
-    /**
-     * Register a remote client node
-     *
-     * @param {Node<any, any>} node Node to register
-     * @returns {boolean} Registration success
-     */
-    public registerNode(node: Node<any, any>): boolean {
-        this._nodes.set(node.uid, node);
-        this.logger('debug', {
-            message: `Registered remote client node ${node.uid}`,
-        });
-        return true;
-    }
-
     public get connected(): boolean {
         if (this._client === undefined) {
             return false;
@@ -162,32 +111,24 @@ export class SocketClient extends Service {
         return this._client.connected;
     }
 
-    /**
-     * Send an error to a remote node
-     *
-     * @param {string} uid Remote Node UID
-     * @param {PushError} error Push error
-     */
-    public sendError(uid: string, error: PushError): void {
-        if (this._client) this._client.emit('error', uid, error);
+    public remoteEvent(uid: string, event: string, arg: any): Promise<void> {
+        return new Promise((resolve) => {
+            if (this._client) this._client.emit('event', uid, event, arg);
+            resolve();
+        });
     }
 
-    /**
-     * Send a completed event to a remote node
-     *
-     * @param {string} uid Remote Node UID
-     * @param {PushCompletedEvent} error Push completed event
-     * @param event
-     */
-    public sendCompleted(uid: string, event: PushCompletedEvent): void {
-        if (this._client) this._client.emit('completed', uid, event);
+    public remotePush<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): Promise<void> {
+        return new Promise((resolve) => {
+            if (this._client) this._client.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
+            resolve();
+        });
     }
 
-    public push<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): void {
-        if (this._client) this._client.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
-    }
-
-    public pull(uid: string, options?: PullOptions): void {
-        if (this._client) this._client.emit('pull', uid, options);
+    public remotePull(uid: string, options?: PullOptions): Promise<void> {
+        return new Promise((resolve) => {
+            if (this._client) this._client.emit('pull', uid, options);
+            resolve();
+        });
     }
 }

@@ -130,13 +130,13 @@ describe('node client', () => {
                             clientModel = model;
                             const frame = new DataFrame();
                             frame.addObject(new DataObject("abc"));
-                            serverModel.push(frame);
                             serverModel.once('error', err => {
                                 server.close();
                                 serverModel.emit('destroy');
                                 clientModel.emit('destroy');
                                 done();
                             });
+                            serverModel.push(frame);
                         }).catch(ex => {
                             done(ex);
                         });
