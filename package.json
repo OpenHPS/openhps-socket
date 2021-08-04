@@ -87,6 +87,10 @@
   },
   "openhps": {},
   "nyc": {
+    "branches": 50,
+    "lines": 50,
+    "functions": 50,
+    "statements": 50,
     "include": [
       "src"
     ],
