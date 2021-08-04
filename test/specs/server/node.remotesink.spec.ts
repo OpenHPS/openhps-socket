@@ -12,7 +12,7 @@ describe('node server', () => {
         it('should host a websocket server', (done) => {
             const server = http.createServer();
             server.listen(1587);
-            let client: SocketIOClient.Socket = null;
+            let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
                 .addService(new SocketServer({
@@ -26,7 +26,7 @@ describe('node server', () => {
                 .build().then(model => {
                     const frame = new DataFrame();
                     frame.addObject(new DataObject("abc"));
-                    client = io("http://localhost:1587/api/v1");
+                    client = io.io("http://localhost:1587/api/v1");
                     client.on('push', (uid: string, serializedFrame: any) => {
                         expect(uid).to.equal("sink");
                         const frame = DataSerializer.deserialize(serializedFrame);
@@ -61,7 +61,7 @@ describe('node server', () => {
             const server = http.createServer(app);
             server.listen(1587);
             
-            let client: SocketIOClient.Socket = null;
+            let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
                 .addService(new SocketServer({
@@ -75,7 +75,7 @@ describe('node server', () => {
                 .build().then(model => {
                     const frame = new DataFrame();
                     frame.addObject(new DataObject("abc"));
-                    client = io("http://localhost:1587/api/v1");
+                    client = io.io("http://localhost:1587/api/v1");
                     client.on('push', (uid: string, serializedFrame: any) => {
                         expect(uid).to.equal("sink");
                         const frame = DataSerializer.deserialize(serializedFrame);

@@ -91,6 +91,9 @@ ModelBuilder.create()
     });
 ```
 
+#### Socket Service
+
+
 ## Contributors
 The framework is open source and is mainly developed by PhD Student Maxim Van de Wynckel as part of his research towards *Hybrid Positioning and Implicit Human-Computer Interaction* under the supervision of Prof. Dr. Beat Signer.
 

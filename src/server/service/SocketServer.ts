@@ -1,4 +1,4 @@
-import { DataSerializer, DataFrame, PushOptions, PullOptions, RemoteNodeService } from '@openhps/core';
+import { DataSerializer, DataFrame, PushOptions, PullOptions, RemoteService } from '@openhps/core';
 import * as io from 'socket.io';
 import * as http from 'http';
 import * as https from 'https';
@@ -7,7 +7,7 @@ import { ServerOptions } from '../nodes/ServerOptions';
 /**
  * Socket server
  */
-export class SocketServer extends RemoteNodeService {
+export class SocketServer extends RemoteService {
     private _server: io.Server;
     private _namespace: io.Namespace;
     private _clients: io.Socket[] = [];
@@ -20,11 +20,11 @@ export class SocketServer extends RemoteNodeService {
         this._options = Object.assign(defaultOptions, options);
         this._options.middleware = this._options.middleware || [];
 
-        this.once('build', this._onBuild.bind(this));
+        this.once('build', this._onInit.bind(this));
         this.once('destroy', this._onDestroy.bind(this));
     }
 
-    private _onBuild(): Promise<void> {
+    private _onInit(): Promise<void> {
         return new Promise<void>((resolve) => {
             switch (this._options.srv.constructor) {
                 case http.Server:
@@ -70,9 +70,32 @@ export class SocketServer extends RemoteNodeService {
         });
         this.emit('connection', socket);
         // Message events
-        socket.on('push', this.localPush.bind(this));
-        socket.on('pull', this.localPull.bind(this));
-        socket.on('event', this.localEvent.bind(this));
+        socket.on('push', (uid, frame, options) => {
+            this.localPush(uid, frame, options);
+        });
+        socket.on('pull', (uid, options) => {
+            this.localPull(uid, options);
+        });
+        socket.on('event', (uid, event, ...args) => {
+            this.localEvent(uid, event, ...args);
+        });
+        socket.on('service', (uuid, uid, method, ...args) => {
+            Promise.resolve(this.localServiceCall(uid, method, ...args))
+                .then((result) => {
+                    this._namespace.compress(true).emit('service-resolve', uuid, DataSerializer.serialize(result));
+                })
+                .catch((ex) => {
+                    this._namespace.compress(true).emit('service-reject', uuid, ex);
+                });
+        });
+        socket.on('service-resolve', (uuid, result) => {
+            this.promises.get(uuid).resolve(result);
+            this.promises.delete(uuid);
+        });
+        socket.on('service-reject', (uuid, result) => {
+            this.promises.get(uuid).reject(result);
+            this.promises.delete(uuid);
+        });
         // Disconnect event
         socket.once('disconnect', this._onDisconnect.bind(this));
     }
@@ -94,15 +117,23 @@ export class SocketServer extends RemoteNodeService {
 
     public remotePull(uid: string, options?: PullOptions): Promise<void> {
         return new Promise((resolve) => {
-            this._namespace.emit('pull', uid, options);
+            this._namespace.compress(true).emit('pull', uid, options);
             resolve();
         });
     }
 
-    public remoteEvent(uid: string, event: string, arg: any): Promise<void> {
+    public remoteEvent(uid: string, event: string, ...args: any[]): Promise<void> {
         return new Promise((resolve) => {
-            this._namespace.compress(true).emit('event', uid, event, arg);
+            this._namespace.compress(true).emit('event', uid, event, ...args);
             resolve();
+        });
+    }
+
+    public remoteServiceCall(uid: string, method: string, ...args: any[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const uuid = this.generateUUID();
+            this._namespace.compress(true).emit('service', uuid, uid, method, ...args);
+            this.promises.set(uuid, { resolve, reject });
         });
     }
 

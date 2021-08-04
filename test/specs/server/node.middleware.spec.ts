@@ -11,7 +11,7 @@ describe('node server', () => {
         it('should authenticate correct tokens', (done) => {
             const server = http.createServer();
             server.listen(1587);
-            let client: SocketIOClient.Socket = null;
+            let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
                 .addService(new SocketServer({
@@ -35,7 +35,7 @@ describe('node server', () => {
                 .build().then(model => {
                     const frame = new DataFrame();
                     frame.addObject(new DataObject("abc"));
-                    client = io("http://localhost:1587/api/v1", {
+                    client = io.io("http://localhost:1587/api/v1", {
                         auth: {
                             token: "s3cret"
                         }
@@ -56,7 +56,7 @@ describe('node server', () => {
         it('should block unauthorized requests', (done) => {
             const server = http.createServer();
             server.listen(1587);
-            let client: SocketIOClient.Socket = null;
+            let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
                 .addService(new SocketServer({
@@ -80,7 +80,7 @@ describe('node server', () => {
                 .build().then(model => {
                     const frame = new DataFrame();
                     frame.addObject(new DataObject("abc"));
-                    client = io("http://localhost:1587/api/v1");
+                    client = io.io("http://localhost:1587/api/v1");
                     client.on('connect_error', () => {
                         client.close();
                         server.close();

@@ -11,7 +11,7 @@ describe('node server', () => {
         it('should host a websocket server', (done) => {
             const server = http.createServer();
             server.listen(1587);
-            let client: SocketIOClient.Socket = null;
+            let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
                 .addService(new SocketServer({
@@ -29,7 +29,7 @@ describe('node server', () => {
                 .build().then(model => {
                     const frame = new DataFrame();
                     frame.addObject(new DataObject("abc"));
-                    client = io("http://localhost:1587/api/v1");
+                    client = io.io("http://localhost:1587/api/v1");
                     client.emit('push', "source", DataSerializer.serialize(frame));
                 });
         }).timeout(50000);
@@ -50,7 +50,7 @@ describe('node server', () => {
         it('should host multiple websocket servers on the same server port', (done) => {
             const server = http.createServer();
             server.listen(1587);
-            let client: SocketIOClient.Socket = null;
+            let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
                 .addService(new SocketServer({
@@ -76,7 +76,7 @@ describe('node server', () => {
                 .build().then(model => {
                     const frame = new DataFrame();
                     frame.addObject(new DataObject("abc"));
-                    client = io("http://localhost:1587/api/v1");
+                    client = io.io("http://localhost:1587/api/v1");
                     client.emit('push', "source1", DataSerializer.serialize(frame));
                 });
         }).timeout(50000);
@@ -84,7 +84,7 @@ describe('node server', () => {
         it('should support pulling', (done) => {
             const server = http.createServer();
             server.listen(1587);
-            let client: SocketIOClient.Socket = null;
+            let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
                 .addService(new SocketServer({
@@ -96,7 +96,7 @@ describe('node server', () => {
                 }))
                 .to()
                 .build().then(model => {
-                    client = io("http://localhost:1587/api/v1");
+                    client = io.io("http://localhost:1587/api/v1");
                     client.on('pull', (e) => {
                         server.close();
                         client.close();
