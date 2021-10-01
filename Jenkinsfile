@@ -71,10 +71,10 @@ pipeline {
                 reportFiles: '*.*',
                 reportName: "Documentation"
             ])
-            archiveArtifacts artifacts: 'dist/web/openhps-socket.js', fingerprint: true
-            archiveArtifacts artifacts: 'dist/web/openhps-socket.js.map', fingerprint: true
-            archiveArtifacts artifacts: 'dist/web/openhps-socket.min.js', fingerprint: true
-            archiveArtifacts artifacts: 'dist/web/openhps-socket.min.js.map', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket-client.js', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket-client.js.map', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket-client.min.js', fingerprint: true
+            archiveArtifacts artifacts: 'dist/web/openhps-socket-client.min.js.map', fingerprint: true
             deleteDir()
         }
     }

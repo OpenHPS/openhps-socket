@@ -16,6 +16,7 @@ module.exports = {
         "prettier"
     ],
     "rules": {
+        "import/named": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "import/no-cycle": "error",

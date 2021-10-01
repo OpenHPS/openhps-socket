@@ -66,6 +66,19 @@ Once the service is added, you can add ```SocketServerNode``` implementations to
 
 #### Socket Client
 The socket client is used in positioning models to push and pull data from remote locations. Pushed data frames are serialized and pushed to a socket server.
+```typescript
+ModelBuilder.create()
+    .addService(new SocketClient({
+        url: 'http://localhost:1587',
+        path: '/api/v1'
+    }))
+    .addShape(/* ... */)
+    .build().then(model => {
+        /* ... */
+    });
+```
+
+Once the socket client service is added, you can add ```SocketClientNode``` implementations to act as a sink or source of the client.
 
 #### Middleware and Authentication
 Socket.io provides developers with [middleware](https://socket.io/docs/v3/middlewares/). This can be used to add authentication.
@@ -90,9 +103,6 @@ ModelBuilder.create()
         /* ... */
     });
 ```
-
-#### Socket Service
-
 
 ## Contributors
 The framework is open source and is mainly developed by PhD Student Maxim Van de Wynckel as part of his research towards *Hybrid Positioning and Implicit Human-Computer Interaction* under the supervision of Prof. Dr. Beat Signer.
