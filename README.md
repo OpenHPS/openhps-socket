@@ -3,17 +3,17 @@
   @openhps/socket
 </h1>
 <p align="center">
-    <a href="https://ci.mvdw-software.com/job/openhps-socket/" target="_blank">
-        <img alt="Build Status" src="https://ci.mvdw-software.com/job/openhps-socket/job/dev/badge/icon">
+    <a href="https://github.com/OpenHPS/openhps-socket/actions/workflows/main.yml" target="_blank">
+        <img alt="Build Status" src="https://github.com/OpenHPS/openhps-socket/actions/workflows/main.yml/badge.svg">
     </a>
-    <a href="https://ci.mvdw-software.com/view/OpenHPS/job/openhps-socket/job/dev/lastCompletedBuild/testReport" target="_blank">
-        <img alt="Tests" src="https://img.shields.io/jenkins/tests?compact_message&jobUrl=https%3A%2F%2Fci.mvdw-software.com%2Fview%2FOpenHPS%2Fjob%2Fopenhps-socket%2Fjob%2Fdev">
-    </a>
-    <a href="https://ci.mvdw-software.com/view/OpenHPS/job/openhps-socket/job/dev/lastCompletedBuild/cobertura/" target="_blank">
-        <img alt="Code coverage" src="https://img.shields.io/jenkins/coverage/cobertura?jobUrl=https%3A%2F%2Fci.mvdw-software.com%2Fview%2FOpenHPS%2Fjob%2Fopenhps-socket%2Fjob%2Fdev%2F">
+    <a href="https://codecov.io/gh/OpenHPS/openhps-socket">
+        <img src="https://codecov.io/gh/OpenHPS/openhps-socket/branch/master/graph/badge.svg"/>
     </a>
     <a href="https://codeclimate.com/github/OpenHPS/openhps-socket/" target="_blank">
         <img alt="Maintainability" src="https://img.shields.io/codeclimate/maintainability/OpenHPS/openhps-socket">
+    </a>
+    <a href="https://badge.fury.io/js/@openhps%2Fsocket">
+        <img src="https://badge.fury.io/js/@openhps%2Fsocket.svg" alt="npm version" height="18">
     </a>
 </p>
 
