@@ -6,6 +6,6 @@ import { SocketServer } from '../service';
  */
 export class SocketServerNode<In extends DataFrame, Out extends DataFrame> extends RemoteNode<In, Out, SocketServer> {
     constructor(options?: NodeOptions) {
-        super({ service: 'SocketServer', ...options });
+        super({ service: SocketServer, ...options });
     }
 }
