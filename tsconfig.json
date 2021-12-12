@@ -7,7 +7,7 @@
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
-        "outDir": "./lib/cjs",
+        "outDir": "./dist/cjs",
         "declaration": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
