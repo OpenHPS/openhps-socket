@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { ModelBuilder, Model, DataFrame, DataObject, CallbackSinkNode, CallbackSourceNode } from '@openhps/core';
+import { ModelBuilder, Model, DataFrame, DataObject, CallbackSinkNode, CallbackSourceNode, GraphBuilder } from '@openhps/core';
 import { SocketClient, SocketServer, SocketServerSource, SocketClientSink, SocketClientSource, SocketServerSink } from '../../../src';
 import * as http from 'http';
 
@@ -92,6 +92,95 @@ describe('node client', () => {
                         }).catch(ex => {
                             done(ex);
                         });
+                }).catch(ex => {
+                    done(ex);
+                });
+        }).timeout(50000);
+
+        it('should forward server pushes to the correct client', (done) => {
+            let client1Model: Model<any, any>;
+            let client2Model: Model<any, any>;
+            let serverModel: Model<any, any>;
+
+            const server = http.createServer();
+            server.listen(1587);
+            
+            let count = 0;
+
+            ModelBuilder.create()
+                .addService(new SocketServer({
+                    path: "/api/v1",
+                    srv: server
+                }))
+                .from(new SocketServerSource({
+                    uid: "source"
+                }))
+                .to(new SocketServerSink({
+                    uid: "sink",
+                    broadcast: false
+                }))
+                .build().then(model => {
+                    serverModel = model;
+                    const client1 = ModelBuilder.create()
+                        .addService(new SocketClient({
+                            url: 'http://localhost:1587',
+                            path: '/api/v1'
+                        }))
+                        .addShape(GraphBuilder.create()
+                            .from("input")
+                            .to(new SocketClientSink({
+                                uid: "source"
+                            })))
+                        .addShape(GraphBuilder.create()
+                            .from(new SocketClientSource({
+                                uid: "sink"
+                            }))
+                            .to(new CallbackSinkNode(function(frame, options) {
+                                expect(this.model.findService(SocketClient).clientId, (options as any).clientId);
+                                count++;
+                                if (count === 2) {
+                                    client1Model.emit('destroy');
+                                    client2Model.emit('destroy');
+                                    serverModel.emit('destroy');
+                                    done();
+                                }
+                            })));
+                        const client2 = ModelBuilder.create()
+                            .addService(new SocketClient({
+                                url: 'http://localhost:1587',
+                                path: '/api/v1'
+                            }))
+                            .addShape(GraphBuilder.create()
+                                .from("input")
+                                .to(new SocketClientSink({
+                                    uid: "source"
+                                })))
+                            .addShape(GraphBuilder.create()
+                                .from(new SocketClientSource({
+                                    uid: "sink"
+                                }))
+                                .to(new CallbackSinkNode(function(frame, options) {
+                                    expect(this.model.findService(SocketClient).clientId, (options as any).clientId);
+                                    count++;
+                                    if (count === 2) {
+                                        client1Model.emit('destroy');
+                                        client2Model.emit('destroy');
+                                        serverModel.emit('destroy');
+                                        done();
+                                    }
+                                })));
+                    Promise.all([client1.build(), client2.build()]).then(models => {
+                        client1Model = models[0];
+                        client2Model = models[1];
+                        const frame = new DataFrame();
+                        frame.addObject(new DataObject("abc"));
+                        return Promise.all([
+                            client2Model.findNodeByName("input").push(frame),
+                            client1Model.findNodeByName("input").push(frame)
+                        ]);
+                    }).catch(ex => {
+                        done(ex);
+                    });
                 }).catch(ex => {
                     done(ex);
                 });

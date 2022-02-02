@@ -1,4 +1,4 @@
-import { DataSerializer, DataFrame, PushOptions, PullOptions, RemoteService } from '@openhps/core';
+import { DataSerializer, DataFrame, PullOptions, RemoteService, RemotePushOptions } from '@openhps/core';
 import * as io from 'socket.io';
 import * as http from 'http';
 import * as https from 'https';
@@ -57,7 +57,11 @@ export class SocketServer extends RemoteService {
     private _onDestroy(): Promise<void> {
         return new Promise<void>((resolve) => {
             if (this._server !== undefined) {
-                this._server.close();
+                this._server.close((e) => {
+                    if (e !== undefined) {
+                        this.logger('error', e);
+                    }
+                });
             }
             resolve();
         });
@@ -71,10 +75,16 @@ export class SocketServer extends RemoteService {
         this.emit('connection', socket);
         // Message events
         socket.on('push', (uid, frame, options) => {
-            this.localPush(uid, frame, options);
+            this.localPush(uid, frame, {
+                ...options,
+                clientId: socket.id,
+            });
         });
         socket.on('pull', (uid, options) => {
-            this.localPull(uid, options);
+            this.localPull(uid, {
+                ...options,
+                clientId: socket.id,
+            });
         });
         socket.on('event', (uid, event, ...args) => {
             this.localEvent(uid, event, ...args);
@@ -108,9 +118,20 @@ export class SocketServer extends RemoteService {
         });
     }
 
-    public remotePush<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): Promise<void> {
+    public remotePush<T extends DataFrame | DataFrame[]>(
+        uid: string,
+        frame: T,
+        options?: RemotePushOptions,
+    ): Promise<void> {
         return new Promise((resolve) => {
-            this._namespace.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
+            let connection: io.Socket | io.Namespace = this._namespace;
+            if (options.broadcast !== undefined && !options.broadcast) {
+                connection = this._clients.find((client) => client.id === options.clientId);
+            }
+
+            if (connection) {
+                connection.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
+            }
             resolve();
         });
     }

@@ -104,6 +104,13 @@ ModelBuilder.create()
     });
 ```
 
+#### Client Specific Sink
+In a common realistic scenario, client authentication is not simply a method of limiting the use of an endpoint but also
+provides a way to know which data frame belongs to which client.
+
+This module adds a `clientId` to the push options, that allows you to identify a socket. This client id is forwarded to each
+node in the process network.
+
 ## Contributors
 The framework is open source and is mainly developed by PhD Student Maxim Van de Wynckel as part of his research towards *Hybrid Positioning and Implicit Human-Computer Interaction* under the supervision of Prof. Dr. Beat Signer.
 

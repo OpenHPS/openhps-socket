@@ -161,4 +161,13 @@ export class SocketClient extends RemoteService {
             this.promises.set(uuid, { resolve, reject });
         });
     }
+
+    /**
+     * Get the socket client identifier
+     *
+     * @returns {string} client socket identifier
+     */
+    get clientId(): string {
+        return this._client.id;
+    }
 }
