@@ -6,10 +6,10 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenHPS/openhps-rf.git"
+    "url": "https://github.com/OpenHPS/openhps-socket.git"
   },
   "bugs": {
-    "url": "https://github.com/OpenHPS/openhps-rf/issues"
+    "url": "https://github.com/OpenHPS/openhps-socket/issues"
   },
   "homepage": "https://openhps.org",
   "publishConfig": {
