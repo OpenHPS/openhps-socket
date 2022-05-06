@@ -51,8 +51,8 @@ const bundle = (env, module, prefix = "", name = PROJECT_NAME) => ({
   entry: `./dist/${module ? "esm" : "cjs"}/${prefix}index.js`,
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: `web/${name}${module ? ".es" : ""}${env.prod ? ".min" : ""}.js`,
-    library: module ? undefined : LIBRARY_NAME,
+    filename: `web/${PROJECT_NAME}${module ? ".es" : ""}${env.prod ? ".min" : ""}.js`,
+    library: module ? undefined : ['OpenHPS', LIBRARY_NAME.substr(LIBRARY_NAME.indexOf("/") + 1)],
     libraryTarget: module ? "module" : "umd",
     umdNamedDefine: !module,
     globalObject: module ? undefined : `(typeof self !== 'undefined' ? self : this)`,
@@ -63,7 +63,12 @@ const bundle = (env, module, prefix = "", name = PROJECT_NAME) => ({
   },
   externalsType: module ? "module" : undefined,
   externals: {
-    '@openhps/core': "./" + (module ? "openhps-core.es" : "openhps-core") + (env.prod ? ".min" : "") + ".js",
+    '@openhps/core': module ? "./openhps-core.es" + (env.prod ? ".min" : "") + ".js" : {
+      commonjs: '@openhps/core',
+      commonjs2: '@openhps/core',
+      amd: 'core',
+      root: ['OpenHPS', 'core']
+    }
   },
   devtool: 'source-map',
   plugins: [],
