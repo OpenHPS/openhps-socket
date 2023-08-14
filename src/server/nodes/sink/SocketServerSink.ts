@@ -1,4 +1,4 @@
-import { DataFrame, RemoteSinkNode, SinkNodeOptions } from '@openhps/core';
+import { DataFrame, RemoteSinkNode, RemoteSinkNodeOptions } from '@openhps/core';
 import { SocketServer } from '../../service';
 import { SocketServerNode } from '../SocketServerNode';
 
@@ -12,10 +12,9 @@ export class SocketServerSink<In extends DataFrame> extends RemoteSinkNode<In, S
     }
 }
 
-export interface SocketSinkNodeOptions extends SinkNodeOptions {
+export interface SocketSinkNodeOptions extends RemoteSinkNodeOptions<SocketServer> {
     /**
      * Broadcast the pushed data frames to all clients
-     *
      * @default true
      */
     broadcast?: boolean;

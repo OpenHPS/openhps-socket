@@ -32,9 +32,7 @@ export class SocketServer extends RemoteService {
                     this._server = new io.Server(this._options.srv as http.Server | https.Server, {
                         transports: ['polling', 'websocket'],
                     });
-                    this.logger('debug', {
-                        message: 'Socket server opened!',
-                    });
+                    this.logger('debug', 'Socket server opened!');
                     break;
                 default:
                     this._server = this._options.srv as io.Server;
@@ -46,10 +44,7 @@ export class SocketServer extends RemoteService {
             this._options.middleware.forEach((middleware) => {
                 this._namespace.use(middleware);
             });
-            this.logger('debug', {
-                message: 'Socket namespace created!',
-                path: this._options.path,
-            });
+            this.logger('debug', 'Socket namespace created!', this._options.path);
             resolve();
         });
     }
@@ -59,7 +54,7 @@ export class SocketServer extends RemoteService {
             if (this._server !== undefined) {
                 this._server.close((e) => {
                     if (e !== undefined) {
-                        this.logger('error', e);
+                        this.logger('error', e.message, e);
                     }
                 });
             }
@@ -69,9 +64,7 @@ export class SocketServer extends RemoteService {
 
     private _onConnect(socket: io.Socket): void {
         this._clients.push(socket);
-        this.logger('debug', {
-            message: 'New client socket connection opened!',
-        });
+        this.logger('debug', 'New client socket connection opened!');
         this.emit('connection', socket);
         // Message events
         socket.on('push', (uid, frame, options) => {
@@ -113,9 +106,7 @@ export class SocketServer extends RemoteService {
     private _onDisconnect(socket: io.Socket): void {
         this.emit('disconnect', socket);
         this._clients.splice(this._clients.indexOf(socket), 1);
-        this.logger('debug', {
-            message: 'Client socket connection closed!',
-        });
+        this.logger('debug', 'Client socket connection closed!');
     }
 
     public remotePush<T extends DataFrame | DataFrame[]>(

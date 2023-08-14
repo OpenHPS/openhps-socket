@@ -26,7 +26,6 @@ export class SocketClient extends RemoteService {
 
     /**
      * Connect to the socket server
-     *
      * @param {ClientOptions} options Client options
      * @returns {Promise<void>} Connection promise
      */
@@ -50,36 +49,22 @@ export class SocketClient extends RemoteService {
             });
 
             const timeout = setTimeout(() => {
-                this.logger('error', {
-                    message: 'Unexpected timeout occurred while connecting!',
-                    url: `${options.url}${options.path}`,
-                });
+                this.logger('error', 'Unexpected timeout occurred while connecting!');
                 reject(new Error('Unexpected timeout occurred while connecting!'));
             }, options.timeout * 2);
 
             this._client.once('connect', () => {
-                this.logger('debug', {
-                    message: 'Socket connection made with server!',
-                    url: `${options.url}${options.path}`,
-                });
+                this.logger('debug', 'Socket connection made with server!', `${options.url}${options.path}`);
                 clearTimeout(timeout);
                 resolve();
             });
             this._client.once('connect_error', (err: any) => {
-                this.logger('error', {
-                    message: 'Socket connection failed with server!',
-                    url: `${options.url}${options.path}`,
-                    error: err,
-                });
+                this.logger('error', 'Socket connection failed with server!', err);
                 clearTimeout(timeout);
                 reject(err);
             });
             this._client.once('connect_timeout', (err: any) => {
-                this.logger('error', {
-                    message: 'Socket connection timeout!',
-                    url: `${options.url}${options.path}`,
-                    error: err,
-                });
+                this.logger('error', 'Socket connection timeout!', err);
                 clearTimeout(timeout);
                 reject(new Error(`Socket connection timeout!`));
             });
@@ -111,10 +96,7 @@ export class SocketClient extends RemoteService {
                 this.promises.delete(uuid);
             });
             // Open connection
-            this.logger('debug', {
-                message: 'Connecting to socket server ...',
-                url: `${options.url}${options.path}`,
-            });
+            this.logger('debug', 'Connecting to socket server ...', `${options.url}${options.path}`);
             this._client.open();
         });
     }
@@ -164,7 +146,6 @@ export class SocketClient extends RemoteService {
 
     /**
      * Get the socket client identifier
-     *
      * @returns {string} client socket identifier
      */
     get clientId(): string {
