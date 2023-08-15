@@ -1,4 +1,4 @@
-import { DataFrame, RemoteSinkNode, SinkNodeOptions } from '@openhps/core';
+import { DataFrame, RemoteSinkNode, RemoteSinkNodeOptions } from '@openhps/core';
 import { SocketClient } from '../../service';
 import { SocketClientNode } from '../SocketClientNode';
 
@@ -6,7 +6,7 @@ import { SocketClientNode } from '../SocketClientNode';
  * @category Client
  */
 export class SocketClientSink<In extends DataFrame> extends RemoteSinkNode<In, SocketClient> {
-    constructor(options?: SinkNodeOptions) {
+    constructor(options?: RemoteSinkNodeOptions<SocketClient>) {
         super(options);
         this.remoteNode = new SocketClientNode(options);
     }
