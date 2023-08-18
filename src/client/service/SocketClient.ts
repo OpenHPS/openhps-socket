@@ -1,4 +1,12 @@
-import { DataFrame, DataSerializer, PushOptions, PullOptions, RemoteService } from '@openhps/core';
+import {
+    DataFrame,
+    PushOptions,
+    PullOptions,
+    RemoteService,
+    Node,
+    RemoteNodeOptions,
+    DataSerializer,
+} from '@openhps/core';
 import * as io from 'socket.io-client';
 import { ClientOptions } from '../nodes/ClientOptions';
 
@@ -124,7 +132,10 @@ export class SocketClient extends RemoteService {
 
     public remotePush<T extends DataFrame | DataFrame[]>(uid: string, frame: T, options?: PushOptions): Promise<void> {
         return new Promise((resolve) => {
-            if (this._client) this._client.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
+            const node = this.model.findNodeByUID(uid) as Node<any, any>;
+            const nodeOptions = node.getOptions() as RemoteNodeOptions<this>;
+            if (this._client)
+                this._client.compress(true).emit('push', uid, nodeOptions.serialize(frame as any), options);
             resolve();
         });
     }

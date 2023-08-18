@@ -1,0 +1,62 @@
+import { expect } from 'chai';
+import 'mocha';
+import { ModelBuilder, Model, DataFrame, DataObject, CallbackSinkNode, CallbackSourceNode } from '@openhps/core';
+import { SocketClient, SocketServer, SocketServerSource, SocketClientSink, SocketServerSink, SocketClientSource } from '../../../src';
+import * as http from 'http';
+
+describe('node client', () => {
+    describe('custom serializer', () => {
+
+        it('should allow a custom serializer', (done) => {
+            let clientModel: Model<any, any>;
+            let serverModel: Model<any, any>;
+
+            const server = http.createServer();
+            server.listen(1587);
+            
+            ModelBuilder.create()
+                .addService(new SocketServer({
+                    path: "/api/v1",
+                    srv: server
+                }))
+                .from(new SocketServerSource({
+                    uid: "source",
+                    serialize: (d) => d,
+                    deserialize: (d) => d
+                }))
+                .to(new CallbackSinkNode((frame: DataFrame) => {
+                    server.close();
+                    serverModel.emit('destroy');
+                    clientModel.emit('destroy');
+                    done();
+                }))
+                .build().then(model => {
+                    serverModel = model;
+                    serverModel.once('error', done);
+                    ModelBuilder.create()
+                        .addService(new SocketClient({
+                            url: 'http://localhost:1587',
+                            path: '/api/v1'
+                        }))
+                        .from()
+                        .to(new SocketClientSink({
+                            uid: "source",
+                            serialize: (d) => d,
+                            deserialize: (d) => d
+                        }))
+                        .build().then(model => {
+                            clientModel = model;
+                            clientModel.once('error', done);
+                            const frame = new DataFrame();
+                            frame.addObject(new DataObject("abc"));
+                            model.push(frame);
+                        }).catch(ex => {
+                            done(ex);
+                        });
+                }).catch(ex => {
+                    done(ex);
+                });
+        }).timeout(50000);
+
+    });
+});

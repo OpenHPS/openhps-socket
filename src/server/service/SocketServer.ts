@@ -1,4 +1,4 @@
-import { DataSerializer, DataFrame, PullOptions, RemoteService, RemotePushOptions } from '@openhps/core';
+import { DataFrame, PullOptions, RemoteService, RemotePushOptions, DataSerializer } from '@openhps/core';
 import * as io from 'socket.io';
 import * as http from 'http';
 import * as https from 'https';
