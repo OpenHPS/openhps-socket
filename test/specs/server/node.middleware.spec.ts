@@ -7,41 +7,45 @@ import { SocketServerSink, SocketServer } from '../../../src';
 
 describe('node server', () => {
     describe('middleware', () => {
-
         it('should authenticate correct tokens', (done) => {
             const server = http.createServer();
             server.listen(1587);
             let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
-                .addService(new SocketServer({
-                    srv: server,
-                    path: "/api/v1",
-                    middleware: [
-                        (socket, next) => {
-                            const token = socket.handshake.auth['token'];
-                            if (token === "s3cret") {
-                                next();
-                            } else {
-                                next(new Error('Unauthorized'));
-                            }
-                        }
-                    ]
-                }))
+                .addService(
+                    new SocketServer({
+                        srv: server,
+                        path: '/api/v1',
+                        middleware: [
+                            (socket, next) => {
+                                const token = socket.handshake.auth['token'];
+                                if (token === 's3cret') {
+                                    next();
+                                } else {
+                                    next(new Error('Unauthorized'));
+                                }
+                            },
+                        ],
+                    }),
+                )
                 .from()
-                .to(new SocketServerSink({
-                    uid: "sink"
-                }))
-                .build().then(model => {
+                .to(
+                    new SocketServerSink({
+                        uid: 'sink',
+                    }),
+                )
+                .build()
+                .then((model) => {
                     const frame = new DataFrame();
-                    frame.addObject(new DataObject("abc"));
-                    client = io.io("http://localhost:1587/api/v1", {
+                    frame.addObject(new DataObject('abc'));
+                    client = io.io('http://localhost:1587/api/v1', {
                         auth: {
-                            token: "s3cret"
-                        }
+                            token: 's3cret',
+                        },
                     });
                     client.on('push', (uid: string, serializedFrame: any) => {
-                        expect(uid).to.equal("sink");
+                        expect(uid).to.equal('sink');
                         const frame = DataSerializer.deserialize(serializedFrame);
                         client.close();
                         server.close();
@@ -59,35 +63,40 @@ describe('node server', () => {
             let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
-                .addService(new SocketServer({
-                    srv: server,
-                    path: "/api/v1",
-                    middleware: [
-                        (socket, next) => {
-                            const token = socket.handshake.auth['token'];
-                            if (token === "s3cret") {
-                                next();
-                            } else {
-                                next(new Error('Unauthorized'));
-                            }
-                        }
-                    ]
-                }))
+                .addService(
+                    new SocketServer({
+                        srv: server,
+                        path: '/api/v1',
+                        middleware: [
+                            (socket, next) => {
+                                const token = socket.handshake.auth['token'];
+                                if (token === 's3cret') {
+                                    next();
+                                } else {
+                                    next(new Error('Unauthorized'));
+                                }
+                            },
+                        ],
+                    }),
+                )
                 .from()
-                .to(new SocketServerSink({
-                    uid: "sink"
-                }))
-                .build().then(model => {
+                .to(
+                    new SocketServerSink({
+                        uid: 'sink',
+                    }),
+                )
+                .build()
+                .then((model) => {
                     const frame = new DataFrame();
-                    frame.addObject(new DataObject("abc"));
-                    client = io.io("http://localhost:1587/api/v1");
+                    frame.addObject(new DataObject('abc'));
+                    client = io.io('http://localhost:1587/api/v1');
                     client.on('connect_error', () => {
                         client.close();
                         server.close();
                         done();
                     });
                     client.on('push', (uid: string, serializedFrame: any) => {
-                        expect(uid).to.equal("sink");
+                        expect(uid).to.equal('sink');
                         const frame = DataSerializer.deserialize(serializedFrame);
                         client.close();
                         server.close();

@@ -8,27 +8,31 @@ import { SocketServerSink, SocketServer, SocketClientSource } from '../../../src
 
 describe('node server', () => {
     describe('remote sink', () => {
-
         it('should host a websocket server', (done) => {
             const server = http.createServer();
             server.listen(1587);
             let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
-                .addService(new SocketServer({
-                    srv: server,
-                    path: "/api/v1"
-                }))
+                .addService(
+                    new SocketServer({
+                        srv: server,
+                        path: '/api/v1',
+                    }),
+                )
                 .from()
-                .to(new SocketServerSink({
-                    uid: "sink"
-                }))
-                .build().then(model => {
+                .to(
+                    new SocketServerSink({
+                        uid: 'sink',
+                    }),
+                )
+                .build()
+                .then((model) => {
                     const frame = new DataFrame();
-                    frame.addObject(new DataObject("abc"));
-                    client = io.io("http://localhost:1587/api/v1");
+                    frame.addObject(new DataObject('abc'));
+                    client = io.io('http://localhost:1587/api/v1');
                     client.on('push', (uid: string, serializedFrame: any) => {
-                        expect(uid).to.equal("sink");
+                        expect(uid).to.equal('sink');
                         const frame = DataSerializer.deserialize(serializedFrame);
                         client.close();
                         server.close();
@@ -42,13 +46,17 @@ describe('node server', () => {
 
         it('should throw an error when building without client service', (done) => {
             ModelBuilder.create()
-                .from(new SocketClientSource({
-                    uid: "source"
-                }))
+                .from(
+                    new SocketClientSource({
+                        uid: 'source',
+                    }),
+                )
                 .to()
-                .build().then(model => {
+                .build()
+                .then((model) => {
                     done(`No error`);
-                }).catch(ex => {
+                })
+                .catch((ex) => {
                     done();
                 });
         });
@@ -60,24 +68,29 @@ describe('node server', () => {
 
             const server = http.createServer(app);
             server.listen(1587);
-            
+
             let client: io.Socket = null;
             ModelBuilder.create()
                 //.withLogger((level: string, log: any) => console.log(log))
-                .addService(new SocketServer({
-                    srv: server,
-                    path: "/api/v1"
-                }))
+                .addService(
+                    new SocketServer({
+                        srv: server,
+                        path: '/api/v1',
+                    }),
+                )
                 .from()
-                .to(new SocketServerSink({
-                    uid: "sink"
-                }))
-                .build().then(model => {
+                .to(
+                    new SocketServerSink({
+                        uid: 'sink',
+                    }),
+                )
+                .build()
+                .then((model) => {
                     const frame = new DataFrame();
-                    frame.addObject(new DataObject("abc"));
-                    client = io.io("http://localhost:1587/api/v1");
+                    frame.addObject(new DataObject('abc'));
+                    client = io.io('http://localhost:1587/api/v1');
                     client.on('push', (uid: string, serializedFrame: any) => {
-                        expect(uid).to.equal("sink");
+                        expect(uid).to.equal('sink');
                         const frame = DataSerializer.deserialize(serializedFrame);
                         client.close();
                         server.close();
@@ -88,6 +101,5 @@ describe('node server', () => {
                     }, 100);
                 });
         }).timeout(50000);
-
     });
 });
