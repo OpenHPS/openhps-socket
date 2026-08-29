@@ -28,83 +28,103 @@ This repository contains the socket server component for OpenHPS (Open Source Hy
 OpenHPS is a data processing positioning framework. It is designed to support many different use cases ranging from simple positioning such as detecting the position of a pawn on a chessboard using RFID, to indoor positioning methods using multiple cameras.
 
 ## Features
+
 - Socket communication between nodes and services.
-- ```SocketClientNode``` is a node added on the client-side that can be used to push data frames to a server or pull information
-from a server.
+- `SocketClientNode` is a node added on the client-side that can be used to push data frames to a server or pull information
+  from a server.
 
 ## Getting Started
+
 If you have [npm installed](https://www.npmjs.com/get-npm), start using @openhps/csv with the following command.
+
 ```bash
 npm install @openhps/socket --save
 ```
 
-The client implementation is also distributed as ```openhps-socket-client.min.js``` for use in web applications.
+The client implementation is also distributed as `openhps-socket-client.min.js` for use in web applications.
 
 ### Usage
+
 This section briefly describes how to use and get started with @openhps/socket.
 
 #### Socket Server
+
 The socket server is used in positioning models that have remotely accessible nodes or services. Serialized data frames pushed
 to these nodes are deserialized and pushed to outgoing nodes. This allows developers to move parts of their graph to a
 remote server.
 
 The first step in creating remote nodes is to add the socket server as a service. To initialize the server you require an initialized
 HTTP, HTTPS or socket.io server.
+
 ```typescript
 ModelBuilder.create()
-    .addService(new SocketServer({
-        srv: server,
-        path: "/api/v1"
-    }))
+    .addService(
+        new SocketServer({
+            srv: server,
+            path: '/api/v1',
+        }),
+    )
     .addShape(/* ... */)
-    .build().then(model => {
+    .build()
+    .then((model) => {
         /* ... */
     });
 ```
 
-Once the service is added, you can add ```SocketServerNode``` implementations to act as a sink or source.
+Once the service is added, you can add `SocketServerNode` implementations to act as a sink or source.
 
 #### Socket Client
+
 The socket client is used in positioning models to push and pull data from remote locations. Pushed data frames are serialized and pushed to a socket server.
+
 ```typescript
 ModelBuilder.create()
-    .addService(new SocketClient({
-        url: 'http://localhost:1587',
-        path: '/api/v1'
-    }))
+    .addService(
+        new SocketClient({
+            url: 'http://localhost:1587',
+            path: '/api/v1',
+        }),
+    )
     .addShape(/* ... */)
-    .build().then(model => {
+    .build()
+    .then((model) => {
         /* ... */
     });
 ```
 
-Once the socket client service is added, you can add ```SocketClientNode``` implementations to act as a sink or source of the client.
+Once the socket client service is added, you can add `SocketClientNode` implementations to act as a sink or source of the client.
 
 #### Middleware and Authentication
+
 Socket.io provides developers with [middleware](https://socket.io/docs/v3/middlewares/). This can be used to add authentication.
+
 ```typescript
 ModelBuilder.create()
-    .addService(new SocketServer({
-        srv: server,
-        path: "/api/v1",
-        middleware: [
-            (socket, next) => {
-                const token = socket.handshake.auth['token'];
-                if (token === "s3cret") {
-                    next();
-                } else {
-                    next(new Error('Unauthorized'));
-                }
-            }
-        ]
-    }))
+    .addService(
+        new SocketServer({
+            srv: server,
+            path: '/api/v1',
+            middleware: [
+                (socket, next) => {
+                    const token = socket.handshake.auth['token'];
+                    if (token === 's3cret') {
+                        next();
+                    } else {
+                        next(new Error('Unauthorized'));
+                    }
+                },
+            ],
+        }),
+    )
     .addShape(/* ... */)
-    .build().then(model => {
+    .build()
+    .then((model) => {
         /* ... */
     });
 ```
 
 #### Client Specific Sink
+
 In a common realistic scenario, client authentication is not simply a method of limiting the use of an endpoint but also
 provides a way to know which data frame belongs to which client.
 
@@ -112,12 +132,15 @@ This module adds a `clientId` to the push options, that allows you to identify a
 node in the process network.
 
 ## Contributors
-The framework is open source and is mainly developed by PhD Student Maxim Van de Wynckel as part of his research towards *Hybrid Positioning and Implicit Human-Computer Interaction* under the supervision of Prof. Dr. Beat Signer.
+
+The framework is open source and is mainly developed by PhD Student Maxim Van de Wynckel as part of his research towards _Hybrid Positioning and Implicit Human-Computer Interaction_ under the supervision of Prof. Dr. Beat Signer.
 
 ## Contributing
-Use of OpenHPS, contributions and feedback is highly appreciated. Please read our [contributing guidelines](https://github.com/OpenHPS/.github/blob/master/CONTRIBUTING.md) for more information.
+
+Use of OpenHPS, contributions and feedback is highly appreciated. Please read our [contributing guidelines](https://github.com/OpenHPS/.github/blob/HEAD/CONTRIBUTING.md) for more information.
 
 ## License
+
 Copyright (C) 2019-2022 Maxim Van de Wynckel & Vrije Universiteit Brussel
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
