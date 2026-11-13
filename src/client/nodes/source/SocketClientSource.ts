@@ -9,6 +9,5 @@ export class SocketClientSource<Out extends DataFrame> extends RemoteSourceNode<
     constructor(options?: RemoteSourceNodeOptions<SocketClient>) {
         super(options);
         this.remoteNode = new SocketClientNode(options);
-        this.on('localerror', console.log);
     }
 }

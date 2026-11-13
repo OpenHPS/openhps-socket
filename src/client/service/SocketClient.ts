@@ -9,6 +9,7 @@ import {
 } from '@openhps/core';
 import * as io from 'socket.io-client';
 import { ClientOptions } from '../nodes/ClientOptions';
+import { settleServicePromise } from '../../common/settleServicePromise';
 
 /**
  * Socket client
@@ -96,12 +97,10 @@ export class SocketClient extends RemoteService {
                     });
             });
             this._client.on('service-resolve', (uuid: string, result: any) => {
-                this.promises.get(uuid).resolve(result);
-                this.promises.delete(uuid);
+                settleServicePromise(this.promises, uuid, result, false);
             });
             this._client.on('service-reject', (uuid: string, result: any) => {
-                this.promises.get(uuid).reject(result);
-                this.promises.delete(uuid);
+                settleServicePromise(this.promises, uuid, result, true);
             });
             // Open connection
             this.logger('debug', 'Connecting to socket server ...', `${options.url}${options.path}`);
@@ -111,7 +110,7 @@ export class SocketClient extends RemoteService {
 
     private _onDestroy(): Promise<void> {
         return new Promise<void>((resolve) => {
-            this._client.close();
+            this._client?.close();
             resolve();
         });
     }
@@ -160,6 +159,6 @@ export class SocketClient extends RemoteService {
      * @returns {string} client socket identifier
      */
     get clientId(): string {
-        return this._client.id;
+        return this._client?.id;
     }
 }

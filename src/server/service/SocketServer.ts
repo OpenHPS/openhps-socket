@@ -1,8 +1,17 @@
-import { DataFrame, PullOptions, RemoteService, RemotePushOptions, DataSerializer } from '@openhps/core';
+import {
+    DataFrame,
+    PullOptions,
+    RemoteService,
+    RemotePushOptions,
+    DataSerializer,
+    Node,
+    RemoteNodeOptions,
+} from '@openhps/core';
 import * as io from 'socket.io';
 import * as http from 'http';
 import * as https from 'https';
 import { ServerOptions } from '../nodes/ServerOptions';
+import { settleServicePromise } from '../../common/settleServicePromise';
 
 /**
  * Socket server
@@ -25,7 +34,11 @@ export class SocketServer extends RemoteService {
     }
 
     private _onInit(): Promise<void> {
-        return new Promise<void>((resolve) => {
+        return new Promise<void>((resolve, reject) => {
+            if (this._options.srv === undefined) {
+                reject(new Error('No server provided!'));
+                return;
+            }
             switch (this._options.srv.constructor) {
                 case http.Server:
                 case https.Server:
@@ -92,20 +105,23 @@ export class SocketServer extends RemoteService {
                 });
         });
         socket.on('service-resolve', (uuid, result) => {
-            this.promises.get(uuid).resolve(result);
-            this.promises.delete(uuid);
+            settleServicePromise(this.promises, uuid, result, false);
         });
         socket.on('service-reject', (uuid, result) => {
-            this.promises.get(uuid).reject(result);
-            this.promises.delete(uuid);
+            settleServicePromise(this.promises, uuid, result, true);
         });
         // Disconnect event
-        socket.once('disconnect', this._onDisconnect.bind(this));
+        socket.once('disconnect', () => {
+            this._onDisconnect(socket);
+        });
     }
 
     private _onDisconnect(socket: io.Socket): void {
         this.emit('disconnect', socket);
-        this._clients.splice(this._clients.indexOf(socket), 1);
+        const index = this._clients.indexOf(socket);
+        if (index !== -1) {
+            this._clients.splice(index, 1);
+        }
         this.logger('debug', 'Client socket connection closed!');
     }
 
@@ -116,12 +132,14 @@ export class SocketServer extends RemoteService {
     ): Promise<void> {
         return new Promise((resolve) => {
             let connection: io.Socket | io.Namespace = this._namespace;
-            if (options.broadcast !== undefined && !options.broadcast) {
+            if (options?.broadcast === false) {
                 connection = this._clients.find((client) => client.id === options.clientId);
             }
 
             if (connection) {
-                connection.compress(true).emit('push', uid, DataSerializer.serialize(frame), options);
+                const node = this.model.findNodeByUID(uid) as Node<any, any>;
+                const nodeOptions = node.getOptions() as RemoteNodeOptions<this>;
+                connection.compress(true).emit('push', uid, nodeOptions.serialize(frame as any), options);
             }
             resolve();
         });
